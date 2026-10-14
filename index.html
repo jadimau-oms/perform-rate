@@ -1,0 +1,141 @@
+<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Dashboard Success Rate & RTS Rate</title>
+<style>
+:root{--bg:#f7f7f5;--card:#fff;--tx:#1d1d1b;--mu:#6b6b66;--bd:#e2e2dc;--ac:#2563eb;--ok:#16a34a;--rt:#dc2626;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141414;--card:#1e1e1e;--tx:#ececea;--mu:#9a9a94;--bd:#333;--ac:#60a5fa;--ok:#4ade80;--rt:#f87171}}
+:root[data-theme="dark"]{--bg:#141414;--card:#1e1e1e;--tx:#ececea;--mu:#9a9a94;--bd:#333;--ac:#60a5fa;--ok:#4ade80;--rt:#f87171}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:16px;max-width:1200px;margin:auto}
+h1{font-size:20px;margin:0 0 2px}h2{font-size:15px;margin:0 0 8px}.mu{color:var(--mu);font-size:12px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px;margin:12px 0}
+.bar{display:flex;gap:12px;flex-wrap:wrap;align-items:end}.bar label{display:flex;flex-direction:column;font-size:12px;color:var(--mu);gap:3px}
+select,input{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:6px;padding:6px 8px;font:inherit}
+.seg button{background:var(--bg);color:var(--tx);border:1px solid var(--bd);padding:6px 12px;cursor:pointer;font:inherit}
+.seg button:first-child{border-radius:6px 0 0 6px}.seg button:last-child{border-radius:0 6px 6px 0}.seg .on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}.k{border:1px solid var(--bd);border-radius:8px;padding:8px}.k b{font-size:18px;display:block}
+.cv{position:relative;height:280px}.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:800px){.g2{grid-template-columns:1fr}}
+.sc{overflow-x:auto;max-height:480px;overflow-y:auto}table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{padding:5px 8px;border-bottom:1px solid var(--bd);text-align:right;white-space:nowrap}th{position:sticky;top:0;background:var(--card);cursor:pointer;user-select:none}
+th:first-child,td:first-child{text-align:left;max-width:260px;overflow:hidden;text-overflow:ellipsis}tbody tr{cursor:pointer}tbody tr:hover,tr.sel{background:var(--bg)}
+.pg{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:8px}.cw{position:relative;height:120px}.pm{text-align:center;font-size:12px}.pm b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;margin-top:8px}.lg i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
+.hi{color:var(--rt);font-weight:600}.lo{color:var(--ok);font-weight:600}
+</style></head><body>
+<h1>Success Rate & RTS Rate <span id="per" class="mu"></span></h1>
+<div class="mu">Hanya Delivered + Processing + RTS yang dihitung. Cancel & Resi Menyusul dikeluarkan. Success = Delivered ÷ Total, RTS = RTS ÷ Total.</div>
+<div class="card"><div class="bar"><label>Tambah / ganti data (CSV, bisa banyak file)<input type="file" id="up" accept=".csv" multiple></label><span class="mu" id="st"></span></div></div>
+<div class="card bar">
+<label>Metrik<span class="seg" id="mseg"><button data-m="sr" class="on">Success Rate</button><button data-m="rts">RTS Rate</button></span></label>
+<label>Toko<select id="toko"></select></label>
+<label>Pengiklan<select id="adv"></select></label>
+<label>Cari produk<input id="q" placeholder="nama produk..."></label>
+<label>Min. order / bulan aktif<input id="min" type="number" value="20" min="0" style="width:90px"></label>
+</div>
+<div class="card"><div class="kpis" id="kpis"></div></div>
+<div class="g2">
+<div class="card"><h2>Komparasi per toko, per bulan</h2><div class="cv"><canvas id="c1"></canvas></div></div>
+<div class="card"><h2 id="t2">Tren bulanan</h2><div class="cv"><canvas id="c2"></canvas></div></div>
+</div>
+<div class="card"><h2>Rekap toko × bulan <span class="mu">(rate · jumlah order)</span></h2><div class="sc" id="tt"></div></div>
+<div class="card"><h2>Komparasi & ranking pengiklan per bulan <span class="mu">(mengikuti filter toko)</span></h2><div class="bar" style="margin-bottom:8px"><span class="seg" id="pmseg"></span><span class="seg" id="lvseg"><button data-l="L" class="on">Pengiklan utama</button><button data-l="A">Detail sub-pengiklan</button></span><label>Min. order<input id="rmin" type="number" value="30" min="0" style="width:80px"></label></div>
+<div class="mu">Tiap donat = komposisi order satu pengiklan: <span class="lo">Delivered (Success Rate)</span>, <span class="hi">RTS</span>, abu-abu = Processing. Angka tengah: Success Rate (atas), RTS Rate (bawah). Urut dari Success Rate tertinggi.</div>
+<div id="pg" class="pg"></div><div class="g2" id="rk" style="margin-top:12px"></div>
+<div class="mu" style="margin:8px 0">Baris pengiklan utama mencakup seluruh produk kode tersebut (termasuk sub-kode yang belum terdaftar). ↳ = sub-pengiklan.</div><div class="sc" id="ta"></div></div>
+<div class="card"><h2>Produk <span class="mu" id="pinfo"></span></h2><div class="mu">Klik baris untuk lihat tren bulanan produk. Klik judul kolom untuk mengurutkan. Merah = RTS ≥ 30%.</div>
+<div class="cv" style="height:240px;margin:8px 0"><canvas id="c3"></canvas></div><div class="sc" id="pt"></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script>
+let MO=[],ML=[],TK=[];
+const COL=["#2563eb","#16a34a","#f59e0b","#dc2626","#8b5cf6","#0891b2","#db2777"];
+let R=[]; // baris: [bulan,toko,produk,delivered,processing,rts,pengiklan utama,pengiklan]
+let ad="ALL";const aok=r=>ad=="ALL"||(ad[0]=="L"?r[6]:r[7])==ad.slice(2),ok=r=>(tk=="ALL"||r[1]==tk)&&aok(r);
+let LT={},SUBS={},LEADS=[];
+let M="sr",tk="ALL",sel=null,sk="n",sd=-1,ch={};
+function $adv(){document.getElementById("adv").innerHTML='<option value="ALL">Semua pengiklan</option>'+LEADS.map(l=>`<optgroup label="${l}"><option value="L:${l}">${l} (semua)</option>${[...(SUBS[l]||[])].map(s=>`<option value="A:${s}">↳ ${s}</option>`).join("")}</optgroup>`).join("")}
+const $=i=>document.getElementById(i),pc=(a,b)=>b?a/b*100:null,f=v=>v==null?"–":v.toFixed(1)+"%";
+const mv=o=>M=="sr"?pc(o.d,o.n):pc(o.r,o.n),ml=()=>M=="sr"?"Success Rate":"RTS Rate";
+const E=()=>({d:0,p:0,r:0,n:0});const add=(o,r)=>{o.d+=r[3];o.p+=r[4];o.r+=r[5];o.n+=r[3]+r[4]+r[5]};
+function agg(fn){const o={};R.forEach(r=>{if(!fn(r))return;add(o[r[0]]??=E(),r)});return o}
+function mk(id,cfg){ch[id]?.destroy();const tc=getComputedStyle(document.body).color;Chart.defaults.color=tc;Chart.defaults.borderColor="rgba(128,128,128,.2)";
+cfg.options={responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,max:100,ticks:{callback:v=>v+"%"}}},plugins:{tooltip:{callbacks:{label:c=>c.dataset.label+": "+(c.parsed.y==null?"–":c.parsed.y.toFixed(1)+"%")}}},...cfg.options};ch[id]=new Chart($(id),cfg)}
+function render(){
+ const lbl=(tk=="ALL"?"semua toko":tk)+(ad=="ALL"?"":" · "+ad.slice(2));const A=agg(ok),T=E();Object.values(A).forEach(o=>{T.d+=o.d;T.p+=o.p;T.r+=o.r;T.n+=o.n});
+ $("kpis").innerHTML=[["Total order",T.n.toLocaleString("id")],["Delivered",T.d.toLocaleString("id")],["RTS",T.r.toLocaleString("id")],["Success Rate",f(pc(T.d,T.n))],["RTS Rate",f(pc(T.r,T.n))]].map(([a,b])=>`<div class="k"><span class="mu">${a} (${lbl})</span><b>${b}</b></div>`).join("");
+ mk("c1",{type:"bar",data:{labels:TK,datasets:MO.map((m,i)=>({label:ML[i],backgroundColor:COL[i%COL.length],data:TK.map(t=>{const o=E();R.forEach(r=>{if(r[0]==m&&r[1]==t&&aok(r))add(o,r)});return mv(o)})}))}});
+ $("t2").textContent="Tren bulanan — "+lbl;
+ mk("c2",{type:"line",data:{labels:ML,datasets:[{label:"Success Rate",borderColor:"#16a34a",backgroundColor:"#16a34a",data:MO.map(m=>A[m]?pc(A[m].d,A[m].n):null)},{label:"RTS Rate",borderColor:"#dc2626",backgroundColor:"#dc2626",data:MO.map(m=>A[m]?pc(A[m].r,A[m].n):null)}]}});
+ let h=`<table><thead><tr><th>Toko</th>${ML.map(m=>`<th>${m}</th>`).join("")}<th>Total</th></tr></thead><tbody>`;
+ [...TK,"ALL"].forEach(t=>{const row=MO.map(m=>{const o=E();R.forEach(r=>{if(r[0]==m&&(t=="ALL"||r[1]==t)&&aok(r))add(o,r)});return o});const s=E();row.forEach(o=>{s.d+=o.d;s.p+=o.p;s.r+=o.r;s.n+=o.n});
+ h+=`<tr><td>${t=="ALL"?"<b>Semua</b>":t}</td>${row.concat([s]).map(o=>`<td>${f(mv(o))} <span class="mu">· ${o.n}</span></td>`).join("")}</tr>`});
+ $("tt").innerHTML=h+"</tbody></table>";adv();prod()}
+function adv(){const cell=fn=>{const row=MO.map(m=>{const o=E();R.forEach(r=>{if(r[0]==m&&(tk=="ALL"||r[1]==tk)&&fn(r))add(o,r)});return o});const s=E();row.forEach(o=>{s.d+=o.d;s.p+=o.p;s.r+=o.r;s.n+=o.n});return row.concat([s])};
+ const tr=(l,a,i)=>a[4].n?`<tr><td style="padding-left:${i?24:8}px">${i?"↳ ":"<b>"}${l}${i?"":"</b>"}</td>${a.map(o=>`<td class="${M=="rts"&&mv(o)>=30?"hi":""}">${f(mv(o))} <span class="mu">· ${o.n}</span></td>`).join("")}</tr>`:"";
+ const C=LEADS.map(l=>cell(r=>r[6]==l));
+ pies();
+ let h=`<table><thead><tr><th>Pengiklan</th>${ML.map(m=>`<th>${m}</th>`).join("")}<th>Total</th></tr></thead><tbody>`;
+ LEADS.forEach((l,j)=>{h+=tr(l,C[j],0);[...(SUBS[l]||[])].forEach(s=>h+=tr(s,cell(r=>r[7]==s),1))});$("ta").innerHTML=h+"</tbody></table>"}
+function prod(){
+ const q=$("q").value.toLowerCase(),mn=+$("min").value||0,P={};
+ R.forEach(r=>{if(!ok(r)||!r[2].toLowerCase().includes(q))return;const p=P[r[2]]??={m:{},t:E(),a:r[7]==r[6]?r[7]:r[7]+" ("+r[6]+")"};add(p.m[r[0]]??=E(),r);add(p.t,r)});
+ let L=Object.entries(P).filter(([k,p])=>p.t.n>=mn).map(([k,p])=>({k,p,a:p.a,sr:pc(p.t.d,p.t.n),rts:pc(p.t.r,p.t.n),n:p.t.n}));
+ const key=sk.startsWith("m")?null:sk;
+ const val=x=>sk=="k"?x.k:sk.startsWith("m")?(o=>o?mv(o):-1)(x.p.m[sk.slice(1)]):x[sk];
+ L.sort((a,b)=>{const A=val(a),B=val(b);return (A>B?1:A<B?-1:0)*sd});
+ $("pinfo").textContent=`(${L.length} produk${tk!="ALL"?" · "+tk:""})`;
+ const th=(k,t)=>`<th data-k="${k}">${t}${sk==k?(sd>0?" ▲":" ▼"):""}</th>`;
+ let h=`<table><thead><tr>${th("k","Produk")}${th("a","Pengiklan")}${th("n","Order")}${th("sr","Success")}${th("rts","RTS")}${MO.map((m,i)=>th("m"+m,ML[i]+" ("+(M=="sr"?"SR":"RTS")+")")).join("")}</tr></thead><tbody>`;
+ L.slice(0,300).forEach(x=>{h+=`<tr data-p="${x.k.replace(/"/g,"&quot;")}" class="${x.k==sel?"sel":""}"><td title="${x.k.replace(/"/g,"&quot;")}">${x.k}</td><td style="text-align:left">${x.a}</td><td>${x.n}</td><td>${f(x.sr)}</td><td class="${x.rts>=30?"hi":""}">${f(x.rts)}</td>${MO.map(m=>{const o=x.p.m[m];return `<td class="${o&&pc(o.r,o.n)>=30&&M=="rts"?"hi":""}">${o?f(mv(o))+' <span class="mu">·'+o.n+"</span>":"–"}</td>`}).join("")}</tr>`});
+ $("pt").innerHTML=h+"</tbody></table>"+(L.length>300?`<div class="mu">Menampilkan 300 teratas; persempit dengan pencarian.</div>`:"");
+ $("pt").querySelectorAll("th").forEach(e=>e.onclick=()=>{const k=e.dataset.k;sd=sk==k?-sd:(k=="k"?1:-1);sk=k;prod()});
+ $("pt").querySelectorAll("tbody tr").forEach(e=>e.onclick=()=>{sel=e.dataset.p;prod()});
+ if(!sel&&L.length)sel=L[0].k;pchart()}
+function pchart(){const o={};R.forEach(r=>{if(r[2]==sel&&ok(r))add(o[r[0]]??=E(),r)});
+ mk("c3",{type:"line",data:{labels:ML,datasets:[{label:"Success Rate",borderColor:"#16a34a",backgroundColor:"#16a34a",data:MO.map(m=>o[m]?pc(o[m].d,o[m].n):null)},{label:"RTS Rate",borderColor:"#dc2626",backgroundColor:"#dc2626",data:MO.map(m=>o[m]?pc(o[m].r,o[m].n):null)}]},options:{plugins:{title:{display:true,text:sel||""}}}})}
+document.querySelectorAll("#mseg button").forEach(b=>b.onclick=()=>{M=b.dataset.m;document.querySelectorAll("#mseg button").forEach(x=>x.classList.toggle("on",x==b));render()});
+$("toko").onchange=e=>{tk=e.target.value;sel=null;render()};$("adv").onchange=e=>{ad=e.target.value;sel=null;render()};$("q").oninput=prod;$("min").oninput=prod;
+
+let pm=0,lvl="L";
+function pies(){const key=r=>lvl=="L"?r[6]:r[7],mn=+$("rmin").value||0,m=MO[pm],O={};
+ R.forEach(r=>{if(r[0]!=m||!(tk=="ALL"||r[1]==tk))return;add(O[key(r)]??=E(),r)});
+ const L=Object.entries(O).filter(([k,o])=>o.n>=mn&&o.n>0).map(([k,o])=>({k,o,sr:o.d/o.n*100,rt:o.r/o.n*100}));
+ const bS=[...L].sort((a,b)=>b.sr-a.sr||b.o.n-a.o.n),bR=[...L].sort((a,b)=>a.rt-b.rt||b.o.n-a.o.n);
+ Object.keys(ch).filter(k=>k.startsWith("pp")).forEach(k=>{ch[k].destroy();delete ch[k]});
+ $("pg").innerHTML=bS.map((x,i)=>`<div class="pm"><div class="cw"><canvas id="pp${i}"></canvas></div><b title="${x.k}">${x.k}</b><span class="mu">${x.o.n} order</span></div>`).join("")||'<div class="mu">Tidak ada pengiklan yang memenuhi minimal order.</div>';
+ bS.forEach((x,i)=>mk("pp"+i,{type:"doughnut",data:{labels:["Delivered","RTS","Processing"],datasets:[{data:[x.o.d,x.o.r,x.o.p],backgroundColor:["#16a34a","#dc2626","#9ca3af"],borderWidth:0}]},options:{scales:{},cutout:"62%",plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.label+": "+c.raw+" ("+(c.raw/x.o.n*100).toFixed(1)+"%)"}}}},plugins:[{id:"ct",afterDraw(c){const{ctx,chartArea:a}=c,cx=(a.left+a.right)/2,cy=(a.top+a.bottom)/2;ctx.save();ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillStyle=getComputedStyle(document.body).color;ctx.font="600 13px system-ui";ctx.fillText(x.sr.toFixed(0)+"%",cx,cy-7);ctx.fillStyle="#dc2626";ctx.font="11px system-ui";ctx.fillText(x.rt.toFixed(0)+"%",cx,cy+8);ctx.restore()}}]}));
+ const md=["🥇","🥈","🥉"],tb=(t,A,g,cl)=>`<div><h2>${t}</h2><div class="sc" style="max-height:360px"><table><thead><tr><th>#</th><th style="text-align:left">Pengiklan</th><th>Rate</th><th>Order</th></tr></thead><tbody>${A.map((x,i)=>`<tr style="cursor:default"><td style="text-align:left">${md[i]||i+1}</td><td style="text-align:left">${x.k}</td><td class="${cl}">${f(g(x))}</td><td>${x.o.n}</td></tr>`).join("")}</tbody></table></div></div>`;
+ $("rk").innerHTML=tb("Ranking Success Rate "+ML[pm]+" (tertinggi = terbaik)",bS,x=>x.sr,"lo")+tb("Ranking RTS Rate "+ML[pm]+" (terendah = terbaik)",bR,x=>x.rt,"hi")}
+$("pmseg").onclick=e=>{const b=e.target.closest("button");if(!b)return;pm=+b.dataset.i;document.querySelectorAll("#pmseg button").forEach(x=>x.classList.toggle("on",x==b));pies()};
+document.querySelectorAll("#lvseg button").forEach(b=>b.onclick=()=>{lvl=b.dataset.l;document.querySelectorAll("#lvseg button").forEach(x=>x.classList.toggle("on",x==b));pies()});
+$("rmin").oninput=pies;
+
+/* ===== Konfigurasi data: tambahkan nama file CSV bulan baru di sini ===== */
+const FILES=["data/TRACKING_ORDER_MADAM__26_-_JUN.csv","data/TRACKING_ORDER_MADAM__26_-_JUL.csv","data/TRACKING_ORDER_MADAM__26_-_AGS.csv","data/TRACKING_ORDER_MADAM__26_-_SEP.csv"];
+/* ===== Pemetaan pengiklan ===== */
+const LEAD={H:"Hasbi",S:"Sandy",K:"Kharis","1":"Pak Wok",Y:"Yusuf",F:"Faiqun",R:"Riski",O:"Rofiq",C:"Ichsan",I:"Hakim",L:"Yuslich",U:"Ulil",J:"Jalal"};
+const SUB={BS:"Albar",AS:"Aska",GS:"Galih",RS:"Alfin",MS:"Radi",IK:"Ichwan",BK:"Bagas",AK:"Alfin Sehat",DY:"Duril",AY:"Azzam"};
+const TOKO={MBY:"Boy",IPD:"Ifud",IDR:"Anton",IDX:"Sawit",RZZ:"Rozi",IHY:"Ihya",MBI:"MBI (nama belum diisi)"};
+const RX=/(?:^|[\s|\-])(?:([A-Za-z0-9])[-\s])?([A-Za-z0-9])[-\s]?NFZ\s*$/i,RX2=/([A-Z])-NFZ\s*$/,NA="Tidak teridentifikasi";
+function who(t,p){if(t!="NFZ"){const n=TOKO[t]||t;return[n,n]}
+ const q=p.replace(/\s*\([^)]*\)/g,"").trim();let s="",l,m=q.match(RX);
+ if(m){s=(m[1]||"").toUpperCase();l=m[2].toUpperCase()}else{m=q.match(RX2);if(!m)return[NA,NA];l=m[1]}
+ if(!LEAD[l])return[NA,NA];return[LEAD[l],SUB[s+l]||LEAD[l]]}
+/* ===== Baca CSV: hanya Delivered, Processing (+Undelivered), RTS. Cancel & Resi Menyusul diabaikan ===== */
+const MN={JAN:"Jan",FEB:"Feb",MAR:"Mar",APR:"Apr",MEI:"Mei",JUN:"Jun",JUL:"Jul",AGS:"Agu",AGU:"Agu",SEP:"Sep",OKT:"Okt",NOV:"Nov",DES:"Des"},ORD=Object.keys(MN);
+const code=n=>{const m=n.match(/[-_ ]([A-Za-z]{3})\.csv$/i);return m?m[1].toUpperCase():n.replace(/\.csv$/i,"").toUpperCase()};
+const store={};
+function parseCSV(text,mo){const d=Papa.parse(text,{skipEmptyLines:true}).data,h=d[0].map(x=>x.trim().toUpperCase()),iT=h.indexOf("TOKO"),iP=h.indexOf("PRODUCT"),iR=h.indexOf("REMARK"),G={};
+ for(let k=1;k<d.length;k++){const x=d[k],t=(x[iT]||"").trim(),raw=x[iP]||"";let s=(x[iR]||"").trim().toUpperCase();if(s=="UNDELIVERED")s="PROCESSING";
+  if(!t||!raw||!["DELIVERED","PROCESSING","RTS"].includes(s))continue;const p=raw.trim(),key=t+"\t"+p,g=G[key]??=[0,0,0];g[s=="DELIVERED"?0:s=="PROCESSING"?1:2]++}
+ return Object.entries(G).map(([k,g])=>{const[t,p]=k.split("\t"),[l,a]=who(t,p);return[mo,t,p,g[0],g[1],g[2],l,a]})}
+function prep(){LT={};SUBS={};const tt={};R.forEach(r=>{const n=r[3]+r[4]+r[5];LT[r[6]]=(LT[r[6]]||0)+n;tt[r[1]]=(tt[r[1]]||0)+n;if(r[7]!=r[6])(SUBS[r[6]]??=new Set).add(r[7])});
+ LEADS=Object.keys(LT).sort((a,b)=>LT[b]-LT[a]);TK=Object.keys(tt).sort((a,b)=>tt[b]-tt[a]);ad="ALL";tk="ALL";sel=null;pm=MO.length-1;$adv();
+ $("toko").innerHTML='<option value="ALL">Semua toko</option>'+TK.map(t=>`<option>${t}</option>`).join("");
+ $("pmseg").innerHTML=ML.map((m,i)=>`<button data-i="${i}"${i==pm?' class="on"':""}>${m}</button>`).join("")}
+function finish(msg){const ms=Object.keys(store).sort((a,b)=>ORD.indexOf(a)-ORD.indexOf(b));if(!ms.length){$("st").textContent=msg||"Belum ada data.";return}
+ MO=ms;ML=ms.map(m=>MN[m]||m);R=ms.flatMap(m=>store[m]);prep();render();$("per").textContent="· "+ML.join(", ");
+ $("st").textContent=(msg?msg+" · ":"")+"Data dimuat: "+ms.length+" bulan."}
+async function load(){$("st").textContent="Memuat data…";let err="";
+ for(const u of FILES){try{const r=await fetch(u);if(!r.ok)throw new Error(r.status);store[code(u)]=parseCSV(await r.text(),code(u))}catch(e){err="Gagal memuat "+u+" ("+e.message+"). Jika file dibuka langsung dari komputer, pakai server lokal/GitHub Pages atau pilih CSV manual."}}
+ finish(err)}
+$("up").onchange=async e=>{for(const f of e.target.files)store[code(f.name)]=parseCSV(await f.text(),code(f.name));finish();e.target.value=""};
+load();
+</script></body></html>
