@@ -18,10 +18,27 @@ th,td{padding:5px 8px;border-bottom:1px solid var(--bd);text-align:right;white-s
 th:first-child,td:first-child{text-align:left;max-width:260px;overflow:hidden;text-overflow:ellipsis}tbody tr{cursor:pointer}tbody tr:hover,tr.sel{background:var(--bg)}
 .pg{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:8px}.cw{position:relative;height:120px}.pm{text-align:center;font-size:12px}.pm b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;margin-top:8px}.lg i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
 .hi{color:var(--rt);font-weight:600}.lo{color:var(--ok);font-weight:600}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0}.top .fr{display:flex;gap:8px;align-items:center;position:relative}
+.dpb{display:flex;align-items:center;gap:8px;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:20px;padding:6px 8px 6px 14px;cursor:pointer;font:inherit}.dpb i{display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--ac);color:#fff;align-items:center;justify-content:center;font-size:10px;font-style:normal}
+.dp{display:none;position:absolute;right:0;top:calc(100% + 6px);z-index:20;background:var(--card);border:1px solid var(--bd);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.35);flex-direction:column;max-width:calc(100vw - 24px)}.dp.open{display:flex}
+.dpm{display:flex}.dpl{display:flex;flex-direction:column;gap:2px;padding:10px;border-right:1px solid var(--bd);min-width:120px}.dpl button{background:none;border:0;color:var(--tx);text-align:left;padding:6px 8px;border-radius:6px;cursor:pointer;font:inherit}.dpl button:hover{background:var(--bg)}
+.dpc{display:flex;gap:16px;padding:12px;position:relative}.cal{width:224px}.cal h3{margin:0 0 6px;text-align:center;font-size:13px}.cal .g{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:12px}.cal .g span{padding:5px 0}
+.cal .d{cursor:pointer}.cal .in{background:rgba(37,99,235,.28)}.cal .ed{background:var(--ac);color:#fff}.cal .w{color:var(--rt)}.cal .ed.w{color:#fff}.dpn{background:none;border:0;color:var(--ac);cursor:pointer;font-size:16px;position:absolute;top:8px}
+.dpf{display:flex;justify-content:flex-end;gap:8px;padding:10px 12px;border-top:1px solid var(--bd)}.dpf button{padding:6px 14px;border-radius:6px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);cursor:pointer;font:inherit}.dpf .pri{background:var(--ac);color:#fff;border-color:var(--ac)}
+@media(max-width:700px){.dpm,.dpc{flex-direction:column}.dpl{border-right:0;border-bottom:1px solid var(--bd);flex-direction:row;flex-wrap:wrap}.top .fr{width:100%;justify-content:flex-end}.dp{right:0}}
+.chs{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.chip{cursor:pointer;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:12px;border:2px solid transparent;user-select:none;color:#1d1d1b}
+.chip.y{background:#facc15}.chip.g{background:#84cc16}.chip.on{border-color:var(--tx)}.chip:hover{filter:brightness(1.1)}
+.hint{display:inline-block;margin-left:2px;cursor:help;position:relative;color:var(--ac)}
+.hint:hover::after,.hint:focus::after{content:attr(data-h);position:absolute;left:0;top:calc(100% + 4px);z-index:30;background:var(--tx);color:var(--bg);padding:5px 8px;border-radius:6px;font-size:11.5px;white-space:normal;width:190px;line-height:1.35;font-style:normal}
 </style></head><body>
 <h1>Success Rate & RTS Rate <span id="per" class="mu"></span></h1>
 <div class="mu">Hanya Delivered + Processing + RTS yang dihitung. Cancel & Resi Menyusul dikeluarkan. Success = Delivered ÷ Total, RTS = RTS ÷ Total.</div>
-<div class="card"><div class="bar"><label>Tambah / ganti data (CSV, bisa banyak file)<input type="file" id="up" accept=".csv" multiple></label><span class="mu" id="st"></span></div></div>
+<div class="top"><div class="seg" id="tabs"><button data-v="v1" class="on">Success &amp; RTS</button><button data-v="v2">CS × Pengiklan</button><button data-v="v3">Produk Konversi Tinggi</button></div>
+<div class="fr"><select id="fgr"><option value="ALL">Semua grup</option><option value="MADAM">Group MADAM</option><option value="NFZ">Group NFZ</option><option value="LAINNYA">Lainnya</option></select>
+<button class="dpb" id="dpb">📅 <span id="dpt">Semua data</span> <i>▾</i></button>
+<div class="dp" id="dpp"><div class="dpm"><div class="dpl" id="dpls"></div><div class="dpc" id="dpc"></div></div><div class="dpf"><button id="dpx">Cancel</button><button id="dpo" class="pri">Apply</button></div></div></div></div>
+<div class="mu" id="dbw" style="color:var(--rt);margin-bottom:6px"></div><div class="card" id="ook"></div><div class="mu" id="srcn" style="margin-bottom:8px" hidden></div>
+<div id="v1"><div class="card"><div class="bar"><label>Tambah / ganti data (CSV, bisa banyak file)<input type="file" id="up" accept=".csv" multiple></label><span class="mu" id="st"></span></div></div>
 <div class="card bar">
 <label>Metrik<span class="seg" id="mseg"><button data-m="sr" class="on">Success Rate</button><button data-m="rts">RTS Rate</button></span></label>
 <label>Toko<select id="toko"></select></label>
@@ -35,19 +52,31 @@ th:first-child,td:first-child{text-align:left;max-width:260px;overflow:hidden;te
 <div class="card"><h2 id="t2">Tren bulanan</h2><div class="cv"><canvas id="c2"></canvas></div></div>
 </div>
 <div class="card"><h2>Rekap toko × bulan <span class="mu">(rate · jumlah order)</span></h2><div class="sc" id="tt"></div></div>
-<div class="card"><h2>Komparasi & ranking pengiklan per bulan <span class="mu">(mengikuti filter toko)</span></h2><div class="bar" style="margin-bottom:8px"><span class="seg" id="pmseg"></span><span class="seg" id="lvseg"><button data-l="L" class="on">Pengiklan utama</button><button data-l="A">Detail sub-pengiklan</button></span><label>Min. order<input id="rmin" type="number" value="30" min="0" style="width:80px"></label></div>
+<div class="card"><h2>Komparasi & ranking pengiklan <span class="mu">(mengikuti filter toko &amp; periode)</span></h2><div class="bar" style="margin-bottom:8px"><span class="seg" id="pmseg"></span><span class="seg" id="lvseg"><button data-l="L" class="on">Pengiklan utama</button><button data-l="A">Detail sub-pengiklan</button></span><label>Min. order<input id="rmin" type="number" value="30" min="0" style="width:80px"></label></div>
 <div class="mu">Tiap donat = komposisi order satu pengiklan: <span class="lo">Delivered (Success Rate)</span>, <span class="hi">RTS</span>, abu-abu = Processing. Angka tengah: Success Rate (atas), RTS Rate (bawah). Urut dari Success Rate tertinggi.</div>
 <div id="pg" class="pg"></div><div class="g2" id="rk" style="margin-top:12px"></div>
 <div class="mu" style="margin:8px 0">Baris pengiklan utama mencakup seluruh produk kode tersebut (termasuk sub-kode yang belum terdaftar). ↳ = sub-pengiklan.</div><div class="sc" id="ta"></div></div>
 <div class="card"><h2>Produk <span class="mu" id="pinfo"></span></h2><div class="mu">Klik baris untuk lihat tren bulanan produk. Klik judul kolom untuk mengurutkan. Merah = RTS ≥ 30%.</div>
 <div class="cv" style="height:240px;margin:8px 0"><canvas id="c3"></canvas></div><div class="sc" id="pt"></div></div>
+</div>
+<div id="v2" hidden>
+<div class="card bar"><label>Metrik<select id="om"></select></label><label>Toko<select id="otk"></select></label><label>Level<span class="seg" id="olv"><button data-l="L" class="on">Pengiklan utama</button><button data-l="A">Sub-pengiklan</button></span></label><label>Min. order / sel<input id="omin" type="number" value="30" min="0" style="width:80px"></label></div>
+<div class="card"><h2>Ringkasan per CS</h2><div class="mu">Konversi = Delivered ÷ seluruh order COD (termasuk yang cancel sebelum kirim). Valid/Cancel dihitung dari semua order orderonline; Success/RTS dari tracking COD.</div><div class="sc" id="csT"></div></div>
+<div class="card"><h2>Matriks CS × Pengiklan <span class="mu" id="mxl"></span></h2><div class="mu">Hijau = lebih baik, merah = lebih buruk (relatif dalam matriks). Sel di bawah min. order dikosongkan; angka kecil = jumlah order.</div><div class="sc" id="mx"></div></div>
+<div class="card"><h2>Metrik per pengiklan (8 terbesar), dipisah per CS</h2><div class="cv"><canvas id="c4"></canvas></div></div>
+</div>
+<div id="v3" hidden>
+<div class="card bar"><label>Toko<select id="ptk"></select></label><label>Cari produk<input id="pq" placeholder="nama produk..."></label><label>Min. order COD<input id="pmin" type="number" value="30" min="0" style="width:80px"></label><label>Kelompok<span class="seg" id="pgs"><button data-g="N" class="on">Nama produk</button><button data-g="P">Produk + pengiklan</button></span></label></div>
+<div class="card"><h2>10 produk konversi tertinggi <span class="mu">(hijau = Konversi, merah = RTS Rate)</span></h2><div class="cv"><canvas id="c5"></canvas></div></div>
+<div class="card"><h2>Semua produk <span class="mu" id="pinf"></span></h2><div class="mu">Klik judul kolom untuk mengurutkan. Hijau = konversi di atas rata-rata; merah = RTS ≥ 30%. Konversi = Delivered ÷ order COD (tanpa data trafik, ini ukuran order → terkirim).</div><div class="sc" id="pt3"></div></div>
+</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script>
 let MO=[],ML=[],TK=[];
 const COL=["#2563eb","#16a34a","#f59e0b","#dc2626","#8b5cf6","#0891b2","#db2777"];
 let R=[]; // baris: [bulan,toko,produk,delivered,processing,rts,pengiklan utama,pengiklan]
-let ad="ALL";const aok=r=>ad=="ALL"||(ad[0]=="L"?r[6]:r[7])==ad.slice(2),ok=r=>(tk=="ALL"||r[1]==tk)&&aok(r);
+let ad="ALL";const aok=r=>gok(r)&&(ad=="ALL"||(ad[0]=="L"?r[6]:r[7])==ad.slice(2)),ok=r=>(tk=="ALL"||r[1]==tk)&&aok(r);
 let LT={},SUBS={},LEADS=[];
 let M="sr",tk="ALL",sel=null,sk="n",sd=-1,ch={};
 function $adv(){document.getElementById("adv").innerHTML='<option value="ALL">Semua pengiklan</option>'+LEADS.map(l=>`<optgroup label="${l}"><option value="L:${l}">${l} (semua)</option>${[...(SUBS[l]||[])].map(s=>`<option value="A:${s}">↳ ${s}</option>`).join("")}</optgroup>`).join("")}
@@ -58,7 +87,7 @@ function agg(fn){const o={};R.forEach(r=>{if(!fn(r))return;add(o[r[0]]??=E(),r)}
 function mk(id,cfg){ch[id]?.destroy();const tc=getComputedStyle(document.body).color;Chart.defaults.color=tc;Chart.defaults.borderColor="rgba(128,128,128,.2)";
 cfg.options={responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,max:100,ticks:{callback:v=>v+"%"}}},plugins:{tooltip:{callbacks:{label:c=>c.dataset.label+": "+(c.parsed.y==null?"–":c.parsed.y.toFixed(1)+"%")}}},...cfg.options};ch[id]=new Chart($(id),cfg)}
 function render(){
- const lbl=(tk=="ALL"?"semua toko":tk)+(ad=="ALL"?"":" · "+ad.slice(2));const A=agg(ok),T=E();Object.values(A).forEach(o=>{T.d+=o.d;T.p+=o.p;T.r+=o.r;T.n+=o.n});
+ const lbl=(tk=="ALL"?"semua toko":tk)+(ad=="ALL"?"":" · "+ad.slice(2))+(fg=="ALL"?"":" · "+fg)+(dFrom?" · "+drl():"");const A=agg(ok),T=E();Object.values(A).forEach(o=>{T.d+=o.d;T.p+=o.p;T.r+=o.r;T.n+=o.n});
  $("kpis").innerHTML=[["Total order",T.n.toLocaleString("id")],["Delivered",T.d.toLocaleString("id")],["RTS",T.r.toLocaleString("id")],["Success Rate",f(pc(T.d,T.n))],["RTS Rate",f(pc(T.r,T.n))]].map(([a,b])=>`<div class="k"><span class="mu">${a} (${lbl})</span><b>${b}</b></div>`).join("");
  mk("c1",{type:"bar",data:{labels:TK,datasets:MO.map((m,i)=>({label:ML[i],backgroundColor:COL[i%COL.length],data:TK.map(t=>{const o=E();R.forEach(r=>{if(r[0]==m&&r[1]==t&&aok(r))add(o,r)});return mv(o)})}))}});
  $("t2").textContent="Tren bulanan — "+lbl;
@@ -67,7 +96,7 @@ function render(){
  [...TK,"ALL"].forEach(t=>{const row=MO.map(m=>{const o=E();R.forEach(r=>{if(r[0]==m&&(t=="ALL"||r[1]==t)&&aok(r))add(o,r)});return o});const s=E();row.forEach(o=>{s.d+=o.d;s.p+=o.p;s.r+=o.r;s.n+=o.n});
  h+=`<tr><td>${t=="ALL"?"<b>Semua</b>":t}</td>${row.concat([s]).map(o=>`<td>${f(mv(o))} <span class="mu">· ${o.n}</span></td>`).join("")}</tr>`});
  $("tt").innerHTML=h+"</tbody></table>";adv();prod()}
-function adv(){const cell=fn=>{const row=MO.map(m=>{const o=E();R.forEach(r=>{if(r[0]==m&&(tk=="ALL"||r[1]==tk)&&fn(r))add(o,r)});return o});const s=E();row.forEach(o=>{s.d+=o.d;s.p+=o.p;s.r+=o.r;s.n+=o.n});return row.concat([s])};
+function adv(){const cell=fn=>{const row=MO.map(m=>{const o=E();R.forEach(r=>{if(r[0]==m&&(tk=="ALL"||r[1]==tk)&&gok(r)&&fn(r))add(o,r)});return o});const s=E();row.forEach(o=>{s.d+=o.d;s.p+=o.p;s.r+=o.r;s.n+=o.n});return row.concat([s])};
  const tr=(l,a,i)=>a[4].n?`<tr><td style="padding-left:${i?24:8}px">${i?"↳ ":"<b>"}${l}${i?"":"</b>"}</td>${a.map(o=>`<td class="${M=="rts"&&mv(o)>=30?"hi":""}">${f(mv(o))} <span class="mu">· ${o.n}</span></td>`).join("")}</tr>`:"";
  const C=LEADS.map(l=>cell(r=>r[6]==l));
  pies();
@@ -94,15 +123,15 @@ document.querySelectorAll("#mseg button").forEach(b=>b.onclick=()=>{M=b.dataset.
 $("toko").onchange=e=>{tk=e.target.value;sel=null;render()};$("adv").onchange=e=>{ad=e.target.value;sel=null;render()};$("q").oninput=prod;$("min").oninput=prod;
 
 let pm=0,lvl="L";
-function pies(){const key=r=>lvl=="L"?r[6]:r[7],mn=+$("rmin").value||0,m=MO[pm],O={};
- R.forEach(r=>{if(r[0]!=m||!(tk=="ALL"||r[1]==tk))return;add(O[key(r)]??=E(),r)});
+function pies(){const key=r=>lvl=="L"?r[6]:r[7],mn=+$("rmin").value||0,O={},PL=drl()||"semua periode";
+ R.forEach(r=>{if(!(tk=="ALL"||r[1]==tk)||!gok(r))return;add(O[key(r)]??=E(),r)});
  const L=Object.entries(O).filter(([k,o])=>o.n>=mn&&o.n>0).map(([k,o])=>({k,o,sr:o.d/o.n*100,rt:o.r/o.n*100}));
  const bS=[...L].sort((a,b)=>b.sr-a.sr||b.o.n-a.o.n),bR=[...L].sort((a,b)=>a.rt-b.rt||b.o.n-a.o.n);
  Object.keys(ch).filter(k=>k.startsWith("pp")).forEach(k=>{ch[k].destroy();delete ch[k]});
  $("pg").innerHTML=bS.map((x,i)=>`<div class="pm"><div class="cw"><canvas id="pp${i}"></canvas></div><b title="${x.k}">${x.k}</b><span class="mu">${x.o.n} order</span></div>`).join("")||'<div class="mu">Tidak ada pengiklan yang memenuhi minimal order.</div>';
  bS.forEach((x,i)=>mk("pp"+i,{type:"doughnut",data:{labels:["Delivered","RTS","Processing"],datasets:[{data:[x.o.d,x.o.r,x.o.p],backgroundColor:["#16a34a","#dc2626","#9ca3af"],borderWidth:0}]},options:{scales:{},cutout:"62%",plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.label+": "+c.raw+" ("+(c.raw/x.o.n*100).toFixed(1)+"%)"}}}},plugins:[{id:"ct",afterDraw(c){const{ctx,chartArea:a}=c,cx=(a.left+a.right)/2,cy=(a.top+a.bottom)/2;ctx.save();ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillStyle=getComputedStyle(document.body).color;ctx.font="600 13px system-ui";ctx.fillText(x.sr.toFixed(0)+"%",cx,cy-7);ctx.fillStyle="#dc2626";ctx.font="11px system-ui";ctx.fillText(x.rt.toFixed(0)+"%",cx,cy+8);ctx.restore()}}]}));
  const md=["🥇","🥈","🥉"],tb=(t,A,g,cl)=>`<div><h2>${t}</h2><div class="sc" style="max-height:360px"><table><thead><tr><th>#</th><th style="text-align:left">Pengiklan</th><th>Rate</th><th>Order</th></tr></thead><tbody>${A.map((x,i)=>`<tr style="cursor:default"><td style="text-align:left">${md[i]||i+1}</td><td style="text-align:left">${x.k}</td><td class="${cl}">${f(g(x))}</td><td>${x.o.n}</td></tr>`).join("")}</tbody></table></div></div>`;
- $("rk").innerHTML=tb("Ranking Success Rate "+ML[pm]+" (tertinggi = terbaik)",bS,x=>x.sr,"lo")+tb("Ranking RTS Rate "+ML[pm]+" (terendah = terbaik)",bR,x=>x.rt,"hi")}
+ $("rk").innerHTML=tb("Ranking Success Rate "+PL+" (tertinggi = terbaik)",bS,x=>x.sr,"lo")+tb("Ranking RTS Rate "+PL+" (terendah = terbaik)",bR,x=>x.rt,"hi")}
 $("pmseg").onclick=e=>{const b=e.target.closest("button");if(!b)return;pm=+b.dataset.i;document.querySelectorAll("#pmseg button").forEach(x=>x.classList.toggle("on",x==b));pies()};
 document.querySelectorAll("#lvseg button").forEach(b=>b.onclick=()=>{lvl=b.dataset.l;document.querySelectorAll("#lvseg button").forEach(x=>x.classList.toggle("on",x==b));pies()});
 $("rmin").oninput=pies;
@@ -122,20 +151,143 @@ function who(t,p){if(t!="NFZ"){const n=TOKO[t]||t;return[n,n]}
 const MN={JAN:"Jan",FEB:"Feb",MAR:"Mar",APR:"Apr",MEI:"Mei",JUN:"Jun",JUL:"Jul",AGS:"Agu",AGU:"Agu",SEP:"Sep",OKT:"Okt",NOV:"Nov",DES:"Des"},ORD=Object.keys(MN);
 const code=n=>{const m=n.match(/[-_ ]([A-Za-z]{3})\.csv$/i);return m?m[1].toUpperCase():n.replace(/\.csv$/i,"").toUpperCase()};
 const store={};
-function parseCSV(text,mo){const d=Papa.parse(text,{skipEmptyLines:true}).data,h=d[0].map(x=>x.trim().toUpperCase()),iT=h.indexOf("TOKO"),iP=h.indexOf("PRODUCT"),iR=h.indexOf("REMARK"),G={};
- for(let k=1;k<d.length;k++){const x=d[k],t=(x[iT]||"").trim(),raw=x[iP]||"";let s=(x[iR]||"").trim().toUpperCase();if(s=="UNDELIVERED")s="PROCESSING";
-  if(!t||!raw||!["DELIVERED","PROCESSING","RTS"].includes(s))continue;const p=raw.trim(),key=t+"\t"+p,g=G[key]??=[0,0,0];g[s=="DELIVERED"?0:s=="PROCESSING"?1:2]++}
- return Object.entries(G).map(([k,g])=>{const[t,p]=k.split("\t"),[l,a]=who(t,p);return[mo,t,p,g[0],g[1],g[2],l,a]})}
 function prep(){LT={};SUBS={};const tt={};R.forEach(r=>{const n=r[3]+r[4]+r[5];LT[r[6]]=(LT[r[6]]||0)+n;tt[r[1]]=(tt[r[1]]||0)+n;if(r[7]!=r[6])(SUBS[r[6]]??=new Set).add(r[7])});
  LEADS=Object.keys(LT).sort((a,b)=>LT[b]-LT[a]);TK=Object.keys(tt).sort((a,b)=>tt[b]-tt[a]);ad="ALL";tk="ALL";sel=null;pm=MO.length-1;$adv();
  $("toko").innerHTML='<option value="ALL">Semua toko</option>'+TK.map(t=>`<option>${t}</option>`).join("");
- $("pmseg").innerHTML=ML.map((m,i)=>`<button data-i="${i}"${i==pm?' class="on"':""}>${m}</button>`).join("")}
+ $("pmseg").innerHTML=""}
 function finish(msg){const ms=Object.keys(store).sort((a,b)=>ORD.indexOf(a)-ORD.indexOf(b));if(!ms.length){$("st").textContent=msg||"Belum ada data.";return}
  MO=ms;ML=ms.map(m=>MN[m]||m);R=ms.flatMap(m=>store[m]);prep();render();$("per").textContent="· "+ML.join(", ");
  $("st").textContent=(msg?msg+" · ":"")+"Data dimuat: "+ms.length+" bulan."}
-async function load(){$("st").textContent="Memuat data…";let err="";
- for(const u of FILES){try{const r=await fetch(u);if(!r.ok)throw new Error(r.status);store[code(u)]=parseCSV(await r.text(),code(u))}catch(e){err="Gagal memuat "+u+" ("+e.message+"). Jika file dibuka langsung dari komputer, pakai server lokal/GitHub Pages atau pilih CSV manual."}}
- finish(err)}
-$("up").onchange=async e=>{for(const f of e.target.files)store[code(f.name)]=parseCSV(await f.text(),code(f.name));finish();e.target.value=""};
+async function load(){$("st").textContent="Memuat data…";let ok=false;
+ try{ok=await loadDB();if(!ok)$("dbw").textContent="⚠ Penyimpanan (db) tidak tersedia di tampilan ini: buka artifact lewat link claude.ai yang sudah dipublikasikan dan pastikan sudah login. Data tidak akan tersimpan."}catch(e){$("dbw").textContent="⚠ Gagal memuat data tersimpan ("+(e.code||e.message)+"). Muat ulang halaman dan setujui izin penyimpanan jika diminta."}
+ rebuildTR();rebuildOA();finish(ok?"":"Penyimpanan tidak tersedia — data hanya bertahan selama sesi ini")}
+$("up").onchange=async e=>{const msg=[];for(const fl of e.target.files){const tx=await fl.text(),hd=tx.slice(0,tx.indexOf("\n")).toLowerCase();
+ if(hd.includes("order_id")&&hd.includes("handled_by"))msg.push("orderonline "+ingestOO(tx)+" order");
+ else if(hd.includes("toko")&&hd.includes("product")&&hd.includes("remark"))msg.push("tracking "+ingestTR(tx,code(fl.name))+" order");
+ else msg.push("dilewati "+fl.name+" (format tidak dikenali)")}
+ rebuildTR();finish(msg.join(", "));rebuildOA(true);const sv=await flush();$("st").textContent=msg.join(", ")+" · "+sv;e.target.value=""};
+/* ===== Integrasi orderonline x tracking (Sep) ===== */
+
+const MC=["JAN","FEB","MAR","APR","MEI","JUN","JUL","AGS","SEP","OKT","NOV","DES"];
+
+const OOS=new Map(),TOS=new Map();
+let OA=[],OT=[],OMS=[],curTab="v1",fg="ALL",fp="ALL";
+const OE=()=>({n:0,c:0,cod:0,d:0,r:0,pr:0,pd:0,up:0}),oadd=(o,x)=>{for(const k in o)o[k]+=x[k]};
+const OM={cv:["Konversi (Delivered ÷ order COD)",o=>pc(o.d,o.cod)],vl:["Valid rate (tidak cancel)",o=>pc(o.n-o.c,o.n)],sr:["Success Rate (tracking)",o=>pc(o.d,o.d+o.r+o.pr)],rts:["RTS Rate (tracking)",o=>pc(o.r,o.d+o.r+o.pr)],cn:["Cancel rate",o=>pc(o.c,o.n)]};
+let om="cv",olv="L",otk="ALL",pk="cv",psd=-1,pg="N";
+const fxb=x=>(fg=="ALL"||x.g==fg)&&dok(x.dt||""),fx=x=>fxb(x)&&(fp=="ALL"||x.pm==fp);
+const MR=/(^|[^A-Z0-9])(MBY|IPD|IDR|IDX|RZZ|IHY|MBI)(?![A-Z0-9])/;
+const grp=p=>{const u=p.toUpperCase(),c=u.includes("|")?u.slice(u.lastIndexOf("|")+1):u,t=s=>s.includes("NFZ")?"NFZ":MR.test(s)?"MADAM":null;return t(c)||t(u)||"LAINNYA"};
+const tokoOf=p=>{let c=p.split("|").pop().toUpperCase();if(c.includes("NFZ"))return"NFZ";c=c.replace(/\(.*?\)/g,"").replace(")","");return c.split("-").pop().trim().split(/\s+/)[0]||"?"};
+const nmOf=p=>p.split("|")[0].replace(/\(.*?\)/g," ").replace(/\s+/g," ").trim().toUpperCase();
+function gok(r){return(fg=="ALL"||r[8]==fg)&&fp!="t"&&dok(r[9]||"")}
+/* ===== Data per order, tersimpan di db artifact: tidak pernah dihapus; Order ID sama = ditimpa ===== */
+let DB=null;const OOD={},TRD={},dirty={oo:new Set(),tr:new Set()},OST=["completed","processing","pending","cancelled","refunded"],dk=r=>r.dt||"none";
+function putOO(r,q){const o=OOS.get(r.id);if(o&&o.dt!=r.dt){OOD[o.dt]?.delete(r.id);if(!q)dirty.oo.add(o.dt)}OOS.set(r.id,r);(OOD[r.dt]??=new Map).set(r.id,r);if(!q)dirty.oo.add(r.dt)}
+function putTR(r,q){const o=TOS.get(r.id);if(o&&dk(o)!=dk(r)){TRD[dk(o)]?.delete(r.id);if(!q)dirty.tr.add(dk(o))}TOS.set(r.id,r);(TRD[dk(r)]??=new Map).set(r.id,r);if(!q)dirty.tr.add(dk(r))}
+const encOO=m=>{const P=[],pi={};return{P,o:[...m.values()].map(r=>[r.id,pi[r.p]??=P.push(r.p)-1,r.cs,r.st,r.pd?1:0,r.cod?1:0])}};
+const encTR=m=>{const P=[],T=[],pi={},ti={};return{P,T,o:[...m.values()].map(r=>r.s=="X"?[r.id,-1,-1,"X",r.m]:[r.id,ti[r.t]??=T.push(r.t)-1,pi[r.p]??=P.push(r.p)-1,r.s,r.m])}};
+const decOO=(k,d)=>(d.o||[]).forEach(([id,i,cs,st,pd,cod])=>putOO({id,m:MC[+k.slice(5,7)-1],dt:k,p:d.P[i],cs,st,pd:!!pd,cod:!!cod},1));
+const decTR=(k,d)=>(d.o||[]).forEach(([id,ti,pi,s,m])=>putTR({id,t:ti<0?"":d.T[ti],p:pi<0?"":d.P[pi],dt:k=="none"?"":k,s,m},1));
+async function loadDB(){let cl=window.claude;for(let i=0;i<80&&!(cl&&cl.use);i++){await new Promise(r=>setTimeout(r,100));cl=window.claude}DB=cl&&cl.use?await cl.use("db"):null;if(!DB)return false;
+ const[a,b]=await Promise.all([DB.collection("oo").limit(1000).get(),DB.collection("tr").limit(1000).get()]);
+ a.docs.forEach(d=>decOO(d.id,d.data()));b.docs.forEach(d=>decTR(d.id,d.data()));return true}
+async function flush(){if(!DB)return"⚠ tidak tersimpan (penyimpanan tidak tersedia)";const jobs=[];for(const s of["oo","tr"])dirty[s].forEach(k=>jobs.push([s,k]));dirty.oo.clear();dirty.tr.clear();let i=0,ok=0,bad=0;
+ const w=async()=>{while(i<jobs.length){const[s,k]=jobs[i++],m=(s=="oo"?OOD:TRD)[k]||new Map(),body=s=="oo"?encOO(m):encTR(m);let er;
+  for(let a=0;a<3;a++){try{await DB.doc(s+"/"+k).set(body);er=null;break}catch(x){er=x;await new Promise(r=>setTimeout(r,500*(a+1)))}}
+  if(er){bad++;dirty[s].add(k)}else ok++;$("st").textContent=`Menyimpan ${ok+bad}/${jobs.length} dokumen…`}};
+ await Promise.all([w(),w(),w(),w()]);return bad?`⚠ ${bad} dokumen gagal tersimpan (unggah ulang untuk mencoba lagi)`:`${ok} dokumen tersimpan`}
+function ingestTR(tx,c){const d=Papa.parse(tx,{skipEmptyLines:true}).data,h=d[0].map(x=>x.trim().toUpperCase()),iT=h.indexOf("TOKO"),iP=h.indexOf("PRODUCT"),iR=h.indexOf("REMARK"),iO=h.indexOf("ORDER ID"),iD=h.indexOf("TGL ORDER");let n=0;
+ for(let k=1;k<d.length;k++){const x=d[k],id=(x[iO]||"").trim();if(!id)continue;let s=(x[iR]||"").trim().toUpperCase();if(s=="UNDELIVERED")s="PROCESSING";
+  const t=(x[iT]||"").trim(),p=(x[iP]||"").trim(),st=s=="DELIVERED"?"D":s=="PROCESSING"?"P":s=="RTS"?"R":"X",dt=pdt(x[iD]),m=MN[c]?c:(dt?MC[+dt.slice(5,7)-1]:"");if(!m)continue;
+  putTR(st=="X"||!t||!p?{id,t:"",p:"",dt,s:"X",m}:{id,t,p,dt,s:st,m});n++}
+ return n}
+function ingestOO(tx){const d=Papa.parse(tx,{skipEmptyLines:true}).data,h=d[0].map(x=>x.trim().toLowerCase().replace(/^\ufeff/,"")),ix=k=>h.indexOf(k),iI=ix("order_id"),iP=ix("product"),iS=ix("status"),iM=ix("payment_method"),iD=ix("created_at"),iC=ix("handled_by"),iY=ix("payment_status");let n=0;
+ for(let k=1;k<d.length;k++){const x=d[k],id=(x[iI]||"").trim(),mm=parseInt((x[iD]||"").slice(3,5));if(!id||!(mm>=1&&mm<=12))continue;
+  let st=OST.indexOf((x[iS]||"").trim());if(st<0)st=2;
+  putOO({id,m:MC[mm-1],dt:(x[iD]||"").slice(6,10)+"-"+(x[iD]||"").slice(3,5)+"-"+(x[iD]||"").slice(0,2),p:(x[iP]||"").trim(),cs:(x[iC]||"").trim()||"(kosong)",st,pd:(x[iY]||"").trim()=="paid",cod:(x[iM]||"").trim()=="cod"});n++}
+ return n}
+function rebuildTR(){for(const k in store)delete store[k];const G={};
+ TOS.forEach(r=>{if(r.s=="X")return;const k=[r.m,r.t,r.p,r.dt].join("\t"),g=G[k]??=[r.m,r.t,r.p,0,0,0,r.dt];g[r.s=="D"?3:r.s=="P"?4:5]++});
+ Object.values(G).forEach(g=>{const[l,a]=who(g[1],g[2]);(store[g[0]]??=[]).push([g[0],g[1],g[2],g[3],g[4],g[5],l,a,grp(g[2]),g[6]])})}
+function rebuildOA(rf){const G={};
+ OOS.forEach(o=>{const tr=TOS.get(o.id),t=tr&&tr.t?tr.t:tokoOf(o.p),pm=o.cod?"c":"t",k=[o.m,t,o.p,o.cs,o.dt,pm].join("\t"),g=G[k]??={m:o.m,t,p:o.p,cs:o.cs,dt:o.dt,pm,n:0,c:0,cod:0,d:0,r:0,pr:0,pd:0,up:0};
+  g.n++;if(o.st>=3)g.c++;if(o.pd)g.pd++;else if(o.st<2)g.up++;if(o.cod){g.cod++;const s=tr&&tr.s;if(s=="D")g.d++;else if(s=="R")g.r++;else if(s=="P")g.pr++}});
+ OA=Object.values(G).map(g=>{const[l,a]=who(g.t,g.p);g.g=grp(g.p);g.l=l;g.a=a;g.nm=nmOf(g.p);return g});
+ const cnt={},mo=new Set();OA.forEach(x=>{cnt[x.t]=(cnt[x.t]||0)+x.n;mo.add(x.m)});
+ OT=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]);OMS=[...mo].sort((a,b)=>MC.indexOf(a)-MC.indexOf(b));
+ ["otk","ptk"].forEach(i=>{const v=$(i).value;$(i).innerHTML='<option value="ALL">Semua toko</option>'+OT.map(t=>`<option>${t}</option>`).join("");if(OT.includes(v))$(i).value=v});
+ okpi();if(rf&&curTab!="v1")tab(curTab)}
+function srcLine(){const T=OE(),M={};OA.forEach(x=>{if(!fx(x))return;oadd(T,x);const o=M[x.m]??=OE();oadd(o,x)});const mt=Object.keys(M).filter(m=>M[m].cod>0&&M[m].d+M[m].r+M[m].pr==0).map(m=>MN[m]||m);
+ $("srcn").textContent=`Sumber: orderonline (${T.n.toLocaleString("id")} order) × tracking COD (${(T.d+T.r+T.pr).toLocaleString("id")}), dicocokkan lewat Order ID. COD ${T.cod.toLocaleString("id")} · Transfer ${(T.n-T.cod).toLocaleString("id")} · Cancel ${T.c.toLocaleString("id")}.`+(mt.length?` ⚠ Tracking belum ada untuk ${mt.join(", ")}: konversi/success/RTS bulan itu belum valid.`:"")}
+const MI={JAN:1,FEB:2,MAR:3,APR:4,MAY:5,MEI:5,JUN:6,JUL:7,AUG:8,AGS:8,AGU:8,SEP:9,OCT:10,OKT:10,NOV:11,DEC:12,DES:12};
+const pdt=s=>{const m=(s||"").trim().match(/^(\d{1,2})\s+([A-Za-z]{3})[A-Za-z]*\s+(\d{4})/),k=m&&MI[m[2].toUpperCase()];return k?m[3]+"-"+String(k).padStart(2,"0")+"-"+m[1].padStart(2,"0"):""};
+/* ===== Date range picker ===== */
+let dFrom=null,dTo=null,dpA=null,dpB=null,dpv=new Date();
+const MS=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"],MF=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+const z2=n=>String(n).padStart(2,"0"),iso=d=>d.getFullYear()+"-"+z2(d.getMonth()+1)+"-"+z2(d.getDate()),dok=d=>!dFrom||(d>=dFrom&&d<=dTo),dfm=s=>s.slice(8)+" "+MS[+s.slice(5,7)-1]+" "+s.slice(0,4);
+const drl=()=>dFrom?(dFrom==dTo?dfm(dFrom):dfm(dFrom)+" - "+dfm(dTo)):"";
+const T0=()=>{const t=new Date();return new Date(t.getFullYear(),t.getMonth(),t.getDate())},sh=n=>{const t=T0();return new Date(t.getFullYear(),t.getMonth(),t.getDate()+n)},mo1=(k)=>{const t=T0();return new Date(t.getFullYear(),t.getMonth()+k,1)};
+const PRS={yd:["Yesterday",()=>[sh(-1),sh(-1)]],td:["Today",()=>[sh(0),sh(0)]],tm:["This Month",()=>[mo1(0),new Date(mo1(1)-864e5)]],lm:["Last Month",()=>[mo1(-1),new Date(mo1(0)-864e5)]],l7:["Last 7 Days",()=>[sh(-6),sh(0)]],l30:["Last 30 Days",()=>[sh(-29),sh(0)]],l90:["Last 90 Days",()=>[sh(-89),sh(0)]],all:["Semua data",null]};
+function dbounds(){let a="",b="";const f=s=>{if(s){if(!a||s<a)a=s;if(s>b)b=s}};R.forEach(r=>f(r[9]));OA.forEach(x=>f(x.dt));return[a,b]}
+function cal(y,m){const off=(new Date(y,m,1).getDay()+6)%7,dim=new Date(y,m+1,0).getDate(),lo=dpA&&(dpB&&dpB<dpA?dpB:dpA),hi=dpA&&(dpB&&dpB>dpA?dpB:dpA);
+ let h=`<div class="cal"><h3>${MF[m]} ${y}</h3><div class="g">${["Sen","Sel","Rab","Kam","Jum","Sab","Min"].map(x=>`<span class="mu">${x}</span>`).join("")}`+"<span></span>".repeat(off);
+ for(let d=1;d<=dim;d++){const s=y+"-"+z2(m+1)+"-"+z2(d);h+=`<span class="d${lo&&s>=lo&&s<=hi?" in":""}${s==lo||s==hi?" ed":""}${(off+d-1)%7==6?" w":""}" data-s="${s}">${d}</span>`}
+ return h+"</div></div>"}
+function dpr(){const y=dpv.getFullYear(),m=dpv.getMonth(),n=new Date(y,m+1,1);
+ $("dpc").innerHTML='<button class="dpn" style="left:10px" data-n="-1">←</button><button class="dpn" style="right:10px" data-n="1">→</button>'+cal(y,m)+cal(n.getFullYear(),n.getMonth());
+ $("dpc").querySelectorAll(".d").forEach(e=>e.onclick=()=>{const s=e.dataset.s;if(!dpA||dpB){dpA=s;dpB=null}else dpB=s;dpr()});
+ $("dpc").querySelectorAll(".dpn").forEach(e=>e.onclick=()=>{dpv=new Date(y,m+ +e.dataset.n,1);dpr()})}
+function dpApply(){if(dpA){const lo=dpB&&dpB<dpA?dpB:dpA,hi=dpB&&dpB>dpA?dpB:dpA;dFrom=lo;dTo=hi}else dFrom=dTo=null;
+ $("dpt").textContent=drl()||"Semua data";$("dpp").classList.remove("open");tab(curTab)}
+$("dpls").innerHTML=Object.entries(PRS).map(([k,v])=>`<button data-k="${k}">${v[0]}</button>`).join("");
+$("dpls").onclick=e=>{const p=PRS[e.target.dataset.k];if(!p)return;if(!p[1])dpA=dpB=null;else{const[a,b]=p[1]();dpA=iso(a);dpB=iso(b);dpv=new Date(a.getFullYear(),a.getMonth(),1)}dpr()};
+$("dpb").onclick=()=>{const o=$("dpp");if(o.classList.contains("open")){o.classList.remove("open");return}dpA=dFrom;dpB=dTo;
+ const b=dFrom||dbounds()[1]||iso(T0()),y=+b.slice(0,4),m=+b.slice(5,7)-1;dpv=new Date(y,dFrom?m:m-1,1);dpr();o.classList.add("open")};
+$("dpx").onclick=()=>$("dpp").classList.remove("open");$("dpo").onclick=dpApply;
+document.addEventListener("click",e=>{const p=e.composedPath();if(!p.includes($("dpp"))&&!p.includes($("dpb")))$("dpp").classList.remove("open")});
+function okpi(){const T=OE(),S={c:OE(),t:OE()};OA.forEach(x=>{if(!fxb(x))return;oadd(S[x.pm],x);if(fp=="ALL"||x.pm==fp)oadd(T,x)});
+ const cn=n=>n.toLocaleString("id"),pr=o=>o.n?Math.round(o.pd/o.n*100)+"%":"–",
+ ch=(a,v)=>`<span class="chip ${a=="t"?"y":"g"}${fp==a?" on":""}" data-p="${a}" title="Klik untuk memfilter ${a=="t"?"Transfer":"COD"} (klik lagi untuk batal)">${a=="t"?"Transfer":"COD"} ${v}</span>`,
+ k=(l,v,f,s)=>`<div class="k"><span class="mu">${l}${s?` <span class="hint" tabindex="0" data-h="${s}">ⓘ</span>`:""}</span><b>${v}</b><div class="chs">${ch("t",f(S.t))}${ch("c",f(S.c))}</div></div>`;
+ $("ook").innerHTML=`<h2>Orderonline · ${fg=="ALL"?"semua grup":"Group "+fg} · ${drl()||"semua periode"}${fp=="ALL"?"":" · "+(fp=="c"?"COD":"Transfer")}</h2><div class="kpis">`+k("Total Orders",cn(T.n),o=>cn(o.n))+k("Total Paid",cn(T.pd),o=>cn(o.pd))+k("Paid Ratio",pr(T),pr)+k("Unpaid Orders",cn(T.up),o=>cn(o.up),"Processing &amp; Completed yang belum dibayar")+"</div>"}
+$("ook").onclick=e=>{const x=e.target.closest(".chip");if(!x)return;fp=fp==x.dataset.p?"ALL":x.dataset.p;tab(curTab)};
+function tab(v){curTab=v;okpi();["v1","v2","v3"].forEach(i=>$(i).hidden=i!=v);$("srcn").hidden=v=="v1";document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.v==v));if(v=="v1")render();else{srcLine();v=="v2"?v2():v3()}}
+function v2(){const m=OM[om],key=x=>olv=="L"?x.l:x.a,mn=+$("omin").value||0,tf=x=>(otk=="ALL"||x.t==otk)&&fx(x),A={},S={},T={};
+ OA.forEach(x=>{if(!tf(x))return;oadd(A[key(x)+"\t"+x.cs]??=OE(),x);oadd(S[x.cs]??=OE(),x);oadd(T[key(x)]??=OE(),x)});
+ const C=Object.keys(S).sort(),Ad=Object.keys(T).filter(a=>T[a].n>=mn).sort((a,b)=>T[b].n-T[a].n);
+ let h=`<table><thead><tr><th>CS</th><th>Order</th><th>Valid</th><th>Cancel</th><th>COD</th><th>Konversi</th><th>Success</th><th>RTS</th></tr></thead><tbody>`;
+ C.forEach(c=>{const o=S[c];h+=`<tr style="cursor:default"><td>${c}</td><td>${o.n}</td>${["vl","cn"].map(k=>`<td>${f(OM[k][1](o))}</td>`).join("")}<td>${f(pc(o.cod,o.n))}</td><td>${f(OM.cv[1](o))}</td><td>${f(OM.sr[1](o))}</td><td class="${OM.rts[1](o)>=30?"hi":""}">${f(OM.rts[1](o))}</td></tr>`});
+ $("csT").innerHTML=h+"</tbody></table>";
+ const val=o=>o&&o.n>=mn?m[1](o):null,vs=[];Ad.forEach(a=>C.forEach(c=>{const v=val(A[a+"\t"+c]);if(v!=null)vs.push(v)}));
+ const lo=Math.min(...vs),hi=Math.max(...vs),bad=om=="rts"||om=="cn",col=v=>{if(v==null||hi==lo)return"";let t=(v-lo)/(hi-lo);if(bad)t=1-t;return`background:rgba(${t>.5?"22,163,74":"220,38,38"},${(Math.abs(t-.5)*.7).toFixed(2)})`};
+ const cell=(o,hl)=>{const v=val(o);return`<td style="${hl?col(v):""}">${v==null?"–":f(v)+' <span class="mu">· '+o.n+"</span>"}</td>`};
+ $("mxl").textContent="— "+m[0];
+ h=`<table><thead><tr><th>Pengiklan</th>${C.map(c=>`<th>${c}</th>`).join("")}<th>Semua CS</th></tr></thead><tbody>`;
+ Ad.forEach(a=>{h+=`<tr style="cursor:default"><td>${a}</td>${C.map(c=>cell(A[a+"\t"+c],1)).join("")}${cell(T[a],0)}</tr>`});
+ $("mx").innerHTML=h+"</tbody></table>";
+ const top=Ad.slice(0,8);
+ mk("c4",{type:"bar",data:{labels:top,datasets:C.map((c,i)=>({label:c,backgroundColor:COL[i%COL.length],data:top.map(a=>val(A[a+"\t"+c]))}))}})}
+function v3(){const q=$("pq").value.toLowerCase(),mn=+$("pmin").value||0,pt=$("ptk").value,P={};
+ OA.forEach(x=>{if((pt!="ALL"&&x.t!=pt)||!fx(x)||!x.nm.toLowerCase().includes(q))return;const k=pg=="N"?x.nm:x.nm+" · "+x.a,e=P[k]??={o:OE(),a:new Set(),k};oadd(e.o,x);e.a.add(x.a)});
+ const L=Object.values(P).filter(e=>e.o.cod>=mn).map(e=>({k:e.k,a:[...e.a].join(", "),n:e.o.n,cod:e.o.cod,cv:OM.cv[1](e.o),vl:OM.vl[1](e.o),sr:OM.sr[1](e.o),rts:OM.rts[1](e.o),cn:OM.cn[1](e.o)}));
+ const T=OE();OA.forEach(x=>{if((pt=="ALL"||x.t==pt)&&fx(x))oadd(T,x)});const avg=OM.cv[1](T);
+ L.sort((a,b)=>{const A=a[pk]??-1,B=b[pk]??-1;return(A>B?1:A<B?-1:0)*psd});
+ $("pinf").textContent=`(${L.length} produk · rata-rata konversi ${f(avg)})`;
+ const th=(k,t)=>`<th data-k="${k}">${t}${pk==k?(psd>0?" ▲":" ▼"):""}</th>`;
+ let h=`<table><thead><tr>${th("k","Produk")}${th("a","Pengiklan")}${th("n","Order")}${th("cod","COD")}${th("cv","Konversi")}${th("vl","Valid")}${th("cn","Cancel")}${th("sr","Success")}${th("rts","RTS")}</tr></thead><tbody>`;
+ L.slice(0,300).forEach(x=>{h+=`<tr style="cursor:default"><td title="${x.k}">${x.k}</td><td style="text-align:left">${x.a}</td><td>${x.n}</td><td>${x.cod}</td><td class="${x.cv>=avg?"lo":""}">${f(x.cv)}</td><td>${f(x.vl)}</td><td>${f(x.cn)}</td><td>${f(x.sr)}</td><td class="${x.rts>=30?"hi":""}">${f(x.rts)}</td></tr>`});
+ $("pt3").innerHTML=h+"</tbody></table>";
+ $("pt3").querySelectorAll("th").forEach(e=>e.onclick=()=>{const k=e.dataset.k;psd=pk==k?-psd:(k=="k"||k=="a"?1:-1);pk=k;v3()});
+ const tp=[...L].filter(x=>x.cv!=null).sort((a,b)=>b.cv-a.cv).slice(0,10);
+ mk("c5",{type:"bar",data:{labels:tp.map(x=>x.k.slice(0,22)),datasets:[{label:"Konversi",backgroundColor:"#16a34a",data:tp.map(x=>x.cv)},{label:"RTS Rate",backgroundColor:"#dc2626",data:tp.map(x=>x.rts)}]}})}
+document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>tab(b.dataset.v));
+$("om").onchange=e=>{om=e.target.value;v2()};$("otk").onchange=e=>{otk=e.target.value;v2()};$("omin").oninput=v2;
+document.querySelectorAll("#olv button").forEach(b=>b.onclick=()=>{olv=b.dataset.l;document.querySelectorAll("#olv button").forEach(x=>x.classList.toggle("on",x==b));v2()});
+document.querySelectorAll("#pgs button").forEach(b=>b.onclick=()=>{pg=b.dataset.g;document.querySelectorAll("#pgs button").forEach(x=>x.classList.toggle("on",x==b));v3()});
+["ptk","pq","pmin"].forEach(i=>$(i).oninput=v3);
+
+$("fgr").onchange=e=>{fg=e.target.value;tab(curTab)};
+rebuildOA();
 load();
 </script></body></html>
