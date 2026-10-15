@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Dashboard Success Rate & RTS Rate</title>
+<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Dashboard Success Rate & RTS Rate</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E📊%3C/text%3E%3C/svg%3E">
 <style>
 :root{--bg:#f7f7f5;--card:#fff;--tx:#1d1d1b;--mu:#6b6b66;--bd:#e2e2dc;--ac:#2563eb;--ok:#16a34a;--rt:#dc2626;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141414;--card:#1e1e1e;--tx:#ececea;--mu:#9a9a94;--bd:#333;--ac:#60a5fa;--ok:#4ade80;--rt:#f87171}}
@@ -189,7 +189,11 @@ const encOO=m=>{const P=[],pi={};return{P,o:[...m.values()].map(r=>[r.id,pi[r.p]
 const encTR=m=>{const P=[],T=[],pi={},ti={};return{P,T,o:[...m.values()].map(r=>r.s=="X"?[r.id,-1,-1,"X",r.m]:[r.id,ti[r.t]??=T.push(r.t)-1,pi[r.p]??=P.push(r.p)-1,r.s,r.m])}};
 const decOO=(k,d)=>(d.o||[]).forEach(([id,i,cs,st,pd,cod])=>putOO({id,m:MC[+k.slice(5,7)-1],dt:k,p:d.P[i],cs,st,pd:!!pd,cod:!!cod},1));
 const decTR=(k,d)=>(d.o||[]).forEach(([id,ti,pi,s,m])=>putTR({id,t:ti<0?"":d.T[ti],p:pi<0?"":d.P[pi],dt:k=="none"?"":k,s,m},1));
-async function loadDB(){let cl=window.claude;for(let i=0;i<80&&!(cl&&cl.use);i++){await new Promise(r=>setTimeout(r,100));cl=window.claude}DB=cl&&cl.use?await cl.use("db"):null;if(!DB)return false;
+/* Fallback untuk GitHub Pages: db artifact tidak ada, simpan di IndexedDB browser (antarmuka sama) */
+function idbShim(){const open=()=>new Promise((res,rej)=>{const q=indexedDB.open("perform-rate",1);q.onupgradeneeded=()=>q.result.createObjectStore("kv");q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)});
+ return{collection:c=>({limit:()=>({get:async()=>{const d=await open();return new Promise((res,rej)=>{const out=[],rq=d.transaction("kv").objectStore("kv").openCursor();rq.onsuccess=()=>{const cur=rq.result;if(cur){if(cur.key.startsWith(c+"/")){const v=cur.value;out.push({id:cur.key.slice(c.length+1),data:()=>v})}cur.continue()}else res({docs:out})};rq.onerror=()=>rej(rq.error)})}})}),
+ doc:p=>({set:async b=>{const d=await open();return new Promise((res,rej)=>{const t=d.transaction("kv","readwrite");t.objectStore("kv").put(b,p);t.oncomplete=()=>res();t.onerror=()=>rej(t.error)})}})}}
+async function loadDB(){let cl=window.claude;if(cl)for(let i=0;i<80&&!(cl&&cl.use);i++){await new Promise(r=>setTimeout(r,100));cl=window.claude}DB=cl&&cl.use?await cl.use("db"):null;if(!DB&&"indexedDB" in window)DB=idbShim();if(!DB)return false;
  const[a,b]=await Promise.all([DB.collection("oo").limit(1000).get(),DB.collection("tr").limit(1000).get()]);
  a.docs.forEach(d=>decOO(d.id,d.data()));b.docs.forEach(d=>decTR(d.id,d.data()));return true}
 async function flush(){if(!DB)return"⚠ tidak tersimpan (penyimpanan tidak tersedia)";const jobs=[];for(const s of["oo","tr"])dirty[s].forEach(k=>jobs.push([s,k]));dirty.oo.clear();dirty.tr.clear();let i=0,ok=0,bad=0;
