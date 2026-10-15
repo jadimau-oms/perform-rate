@@ -30,6 +30,9 @@ th:first-child,td:first-child{text-align:left;max-width:260px;overflow:hidden;te
 .chip.y{background:#facc15}.chip.g{background:#84cc16}.chip.on{border-color:var(--tx)}.chip:hover{filter:brightness(1.1)}
 .hint{display:inline-block;margin-left:2px;cursor:help;position:relative;color:var(--ac)}
 .hint:hover::after,.hint:focus::after{content:attr(data-h);position:absolute;left:0;top:calc(100% + 4px);z-index:30;background:var(--tx);color:var(--bg);padding:5px 8px;border-radius:6px;font-size:11.5px;white-space:normal;width:190px;line-height:1.35;font-style:normal}
+.al{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px;padding:8px 12px;border:1px solid var(--rt);border-radius:8px;background:rgba(220,38,38,.1);cursor:pointer}.al:hover{background:rgba(220,38,38,.18)}.al b{color:var(--rt)}
+.mdl{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:max(12px,env(safe-area-inset-top,0px)) 12px 12px}.mdl.open{display:flex}.mb{background:var(--card);border:1px solid var(--bd);border-radius:12px;width:min(1100px,100%);max-height:100%;display:flex;flex-direction:column}.mh{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--bd);flex-wrap:wrap}.mh h2{margin:0}.mc{padding:12px 14px;overflow:auto}
+.bt{padding:6px 14px;border-radius:6px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);cursor:pointer;font:inherit}.bt.pri{background:var(--ac);color:#fff;border-color:var(--ac)}.tl td,.tl th{text-align:left}
 </style></head><body>
 <h1>Success Rate & RTS Rate <span id="per" class="mu"></span></h1>
 <div class="mu">Hanya Delivered + Processing + RTS yang dihitung. Cancel & Resi Menyusul dikeluarkan. Success = Delivered ÷ Total, RTS = RTS ÷ Total.</div>
@@ -70,6 +73,7 @@ th:first-child,td:first-child{text-align:left;max-width:260px;overflow:hidden;te
 <div class="card"><h2>10 produk konversi tertinggi <span class="mu">(hijau = Konversi, merah = RTS Rate)</span></h2><div class="cv"><canvas id="c5"></canvas></div></div>
 <div class="card"><h2>Semua produk <span class="mu" id="pinf"></span></h2><div class="mu">Klik judul kolom untuk mengurutkan. Hijau = konversi di atas rata-rata; merah = RTS ≥ 30%. Konversi = Delivered ÷ order COD (tanpa data trafik, ini ukuran order → terkirim).</div><div class="sc" id="pt3"></div></div>
 </div>
+<div class="mdl" id="mdl"><div class="mb"><div class="mh"><h2>Selisih Delivered vs Paid COD</h2><div style="display:flex;gap:8px"><button class="bt pri" id="mex">⬇ Export CSV</button><button class="bt" id="mcl">Tutup</button></div></div><div class="mc"><div class="mu" id="mds" style="margin-bottom:8px"></div><div id="mdb"></div></div></div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script>
@@ -186,9 +190,9 @@ let DB=null;const OOD={},TRD={},dirty={oo:new Set(),tr:new Set()},OST=["complete
 function putOO(r,q){const o=OOS.get(r.id);if(o&&o.dt!=r.dt){OOD[o.dt]?.delete(r.id);if(!q)dirty.oo.add(o.dt)}OOS.set(r.id,r);(OOD[r.dt]??=new Map).set(r.id,r);if(!q)dirty.oo.add(r.dt)}
 function putTR(r,q){const o=TOS.get(r.id);if(o&&dk(o)!=dk(r)){TRD[dk(o)]?.delete(r.id);if(!q)dirty.tr.add(dk(o))}TOS.set(r.id,r);(TRD[dk(r)]??=new Map).set(r.id,r);if(!q)dirty.tr.add(dk(r))}
 const encOO=m=>{const P=[],pi={};return{P,o:[...m.values()].map(r=>[r.id,pi[r.p]??=P.push(r.p)-1,r.cs,r.st,r.pd?1:0,r.cod?1:0])}};
-const encTR=m=>{const P=[],T=[],pi={},ti={};return{P,T,o:[...m.values()].map(r=>r.s=="X"?[r.id,-1,-1,"X",r.m]:[r.id,ti[r.t]??=T.push(r.t)-1,pi[r.p]??=P.push(r.p)-1,r.s,r.m])}};
+const encTR=m=>{const P=[],T=[],pi={},ti={};return{P,T,o:[...m.values()].map(r=>r.s=="X"?[r.id,-1,-1,"X",r.m]:[r.id,ti[r.t]??=T.push(r.t)-1,pi[r.p]??=P.push(r.p)-1,r.s,r.m,r.k||""])}};
 const decOO=(k,d)=>(d.o||[]).forEach(([id,i,cs,st,pd,cod])=>putOO({id,m:MC[+k.slice(5,7)-1],dt:k,p:d.P[i],cs,st,pd:!!pd,cod:!!cod},1));
-const decTR=(k,d)=>(d.o||[]).forEach(([id,ti,pi,s,m])=>putTR({id,t:ti<0?"":d.T[ti],p:pi<0?"":d.P[pi],dt:k=="none"?"":k,s,m},1));
+const decTR=(k,d)=>(d.o||[]).forEach(([id,ti,pi,s,m,rk])=>putTR({id,t:ti<0?"":d.T[ti],p:pi<0?"":d.P[pi],dt:k=="none"?"":k,s,m,k:rk||""},1));
 /* Fallback untuk GitHub Pages: db artifact tidak ada, simpan di IndexedDB browser (antarmuka sama) */
 function idbShim(){const open=()=>new Promise((res,rej)=>{const q=indexedDB.open("perform-rate",1);q.onupgradeneeded=()=>q.result.createObjectStore("kv");q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)});
  return{collection:c=>({limit:()=>({get:async()=>{const d=await open();return new Promise((res,rej)=>{const out=[],rq=d.transaction("kv").objectStore("kv").openCursor();rq.onsuccess=()=>{const cur=rq.result;if(cur){if(cur.key.startsWith(c+"/")){const v=cur.value;out.push({id:cur.key.slice(c.length+1),data:()=>v})}cur.continue()}else res({docs:out})};rq.onerror=()=>rej(rq.error)})}})}),
@@ -201,10 +205,10 @@ async function flush(){if(!DB)return"⚠ tidak tersimpan (penyimpanan tidak ters
   for(let a=0;a<3;a++){try{await DB.doc(s+"/"+k).set(body);er=null;break}catch(x){er=x;await new Promise(r=>setTimeout(r,500*(a+1)))}}
   if(er){bad++;dirty[s].add(k)}else ok++;$("st").textContent=`Menyimpan ${ok+bad}/${jobs.length} dokumen…`}};
  await Promise.all([w(),w(),w(),w()]);return bad?`⚠ ${bad} dokumen gagal tersimpan (unggah ulang untuk mencoba lagi)`:`${ok} dokumen tersimpan`}
-function ingestTR(tx,c){const d=Papa.parse(tx,{skipEmptyLines:true}).data,h=d[0].map(x=>x.trim().toUpperCase()),iT=h.indexOf("TOKO"),iP=h.indexOf("PRODUCT"),iR=h.indexOf("REMARK"),iO=h.indexOf("ORDER ID"),iD=h.indexOf("TGL ORDER");let n=0;
+function ingestTR(tx,c){const d=Papa.parse(tx,{skipEmptyLines:true}).data,h=d[0].map(x=>x.trim().toUpperCase()),iT=h.indexOf("TOKO"),iP=h.indexOf("PRODUCT"),iR=h.indexOf("REMARK"),iO=h.indexOf("ORDER ID"),iD=h.indexOf("TGL ORDER"),iK=h.findIndex(x=>/^(NO\.?\s*)?(RESI|AWB|TRACKING)(\s*(ID|NO\.?|NUMBER))?$/.test(x));let n=0;
  for(let k=1;k<d.length;k++){const x=d[k],id=(x[iO]||"").trim();if(!id)continue;let s=(x[iR]||"").trim().toUpperCase();if(s=="UNDELIVERED")s="PROCESSING";
   const t=(x[iT]||"").trim(),p=(x[iP]||"").trim(),st=s=="DELIVERED"?"D":s=="PROCESSING"?"P":s=="RTS"?"R":"X",dt=pdt(x[iD]),m=MN[c]?c:(dt?MC[+dt.slice(5,7)-1]:"");if(!m)continue;
-  putTR(st=="X"||!t||!p?{id,t:"",p:"",dt,s:"X",m}:{id,t,p,dt,s:st,m});n++}
+  putTR(st=="X"||!t||!p?{id,t:"",p:"",dt,s:"X",m}:{id,t,p,dt,s:st,m,k:iK>=0?(x[iK]||"").trim():""});n++}
  return n}
 function ingestOO(tx){const d=Papa.parse(tx,{skipEmptyLines:true}).data,h=d[0].map(x=>x.trim().toLowerCase().replace(/^\ufeff/,"")),ix=k=>h.indexOf(k),iI=ix("order_id"),iP=ix("product"),iS=ix("status"),iM=ix("payment_method"),iD=ix("created_at"),iC=ix("handled_by"),iY=ix("payment_status");let n=0;
  for(let k=1;k<d.length;k++){const x=d[k],id=(x[iI]||"").trim(),mm=parseInt((x[iD]||"").slice(3,5));if(!id||!(mm>=1&&mm<=12))continue;
@@ -254,7 +258,7 @@ function okpi(){const T=OE(),S={c:OE(),t:OE()};OA.forEach(x=>{if(!fxb(x))return;
  const cn=n=>n.toLocaleString("id"),pr=o=>o.n?Math.round(o.pd/o.n*100)+"%":"–",
  ch=(a,v)=>`<span class="chip ${a=="t"?"y":"g"}${fp==a?" on":""}" data-p="${a}" title="Klik untuk memfilter ${a=="t"?"Transfer":"COD"} (klik lagi untuk batal)">${a=="t"?"Transfer":"COD"} ${v}</span>`,
  k=(l,v,f,s)=>`<div class="k"><span class="mu">${l}${s?` <span class="hint" tabindex="0" data-h="${s}">ⓘ</span>`:""}</span><b>${v}</b><div class="chs">${ch("t",f(S.t))}${ch("c",f(S.c))}</div></div>`;
- $("ook").innerHTML=`<h2>Orderonline · ${fg=="ALL"?"semua grup":"Group "+fg} · ${drl()||"semua periode"}${fp=="ALL"?"":" · "+(fp=="c"?"COD":"Transfer")}</h2><div class="kpis">`+k("Total Orders",cn(T.n),o=>cn(o.n))+k("Total Paid",cn(T.pd),o=>cn(o.pd))+k("Paid Ratio",pr(T),pr)+k("Unpaid Orders",cn(T.up),o=>cn(o.up),"Processing &amp; Completed yang belum dibayar")+"</div>"}
+ $("ook").innerHTML=`<h2>Orderonline · ${fg=="ALL"?"semua grup":"Group "+fg} · ${drl()||"semua periode"}${fp=="ALL"?"":" · "+(fp=="c"?"COD":"Transfer")}</h2><div class="kpis">`+k("Total Orders",cn(T.n),o=>cn(o.n))+k("Total Paid",cn(T.pd),o=>cn(o.pd))+k("Paid Ratio",pr(T),pr)+k("Unpaid Orders",cn(T.up),o=>cn(o.up),"Processing &amp; Completed yang belum dibayar")+"</div>"+alertHtml()}
 $("ook").onclick=e=>{const x=e.target.closest(".chip");if(!x)return;fp=fp==x.dataset.p?"ALL":x.dataset.p;tab(curTab)};
 function tab(v){curTab=v;okpi();["v1","v2","v3"].forEach(i=>$(i).hidden=i!=v);$("srcn").hidden=v=="v1";document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.v==v));if(v=="v1")render();else{srcLine();v=="v2"?v2():v3()}}
 function v2(){const m=OM[om],key=x=>olv=="L"?x.l:x.a,mn=+$("omin").value||0,tf=x=>(otk=="ALL"||x.t==otk)&&fx(x),A={},S={},T={};
@@ -292,6 +296,30 @@ document.querySelectorAll("#pgs button").forEach(b=>b.onclick=()=>{pg=b.dataset.
 ["ptk","pq","pmin"].forEach(i=>$(i).oninput=v3);
 
 $("fgr").onchange=e=>{fg=e.target.value;tab(curTab)};
+/* ===== Rekonsiliasi: Delivered (tracking) vs Paid COD (orderonline) ===== */
+let RC=null;const nf=n=>n.toLocaleString("id"),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])),TS={D:"Delivered",P:"Processing",R:"RTS",X:"Cancel / Resi menyusul"};
+function recon(){const D=new Map(),P=new Map(),L=[];
+ TOS.forEach(t=>{if(t.s=="D"&&(fg=="ALL"||grp(t.p)==fg)&&dok(t.dt||""))D.set(t.id,t)});
+ OOS.forEach(o=>{if(o.cod&&o.pd&&(fg=="ALL"||grp(o.p)==fg)&&dok(o.dt||""))P.set(o.id,o)});
+ D.forEach((t,id)=>{if(!P.has(id))L.push({id,t,o:OOS.get(id),w:"D"})});P.forEach((o,id)=>{if(!D.has(id))L.push({id,t:TOS.get(id),o,w:"P"})});
+ return{nd:D.size,np:P.size,L}}
+function rcWhy(x){const{o,t}=x;if(x.w=="D"){if(!o)return"Delivered, order tidak ada di orderonline";if(!o.cod)return"Delivered, tapi order Transfer";if(!o.pd)return"Delivered, tapi COD belum paid";return"Delivered, beda tanggal/grup dengan orderonline"}
+ if(!t)return"Paid COD, belum ada di tracking";if(t.s=="P")return"Paid COD, tracking masih Processing";if(t.s=="R")return"Paid COD, tracking RTS";if(t.s=="X")return"Paid COD, tracking cancel / resi menyusul";return"Paid COD, beda tanggal/grup dengan tracking"}
+function alertHtml(){if(!OOS.size||!TOS.size){RC=null;return""}RC=recon();if(!RC.L.length)return"";const d=Math.abs(RC.nd-RC.np);
+ return`<div class="al" id="ral" role="button" tabindex="0"><span>⚠</span><span><b>Delivered (tracking) ${nf(RC.nd)} ≠ Paid COD (orderonline) ${nf(RC.np)}</b>${d?" · selisih "+nf(d):""} · ${nf(RC.L.length)} order tidak cocok</span><span class="mu">Klik untuk lihat detail</span></div>`}
+const RH=["Order ID","Tracking ID","Toko","Produk","CS","Tgl order","Status orderonline","Status tracking","Keterangan"];
+function rcRows(){return RC.L.map(x=>{const{o,t}=x;return[x.id,t&&t.k||"",t&&t.t||(o?tokoOf(o.p):""),o?nmOf(o.p):(t&&t.p?nmOf(t.p):""),o?o.cs:"",(o?o.dt:t&&t.dt)||"",o?(o.cod?"COD":"Transfer")+" · "+(o.pd?"paid":"belum paid")+" · "+OST[o.st]:"–",t?TS[t.s]||t.s:"–",rcWhy(x)]}).sort((a,b)=>a[8]<b[8]?-1:a[8]>b[8]?1:a[0]<b[0]?-1:1)}
+function openRC(){if(!RC)return;const R2=rcRows(),by={};R2.forEach(r=>by[r[8]]=(by[r[8]]||0)+1);
+ $("mds").innerHTML=`Delivered (tracking) <b>${nf(RC.nd)}</b> · Paid COD (orderonline) <b>${nf(RC.np)}</b> · ${esc(drl()||"semua periode")}${fg=="ALL"?"":" · "+esc(fg)}<br>`+Object.entries(by).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${esc(k)}: <b>${nf(v)}</b>`).join(" · ");
+ $("mdb").innerHTML=`<table class="tl"><thead><tr>${RH.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${R2.slice(0,500).map(r=>`<tr style="cursor:default">${r.map(c=>`<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table>`+(R2.length>500?`<div class="mu" style="margin-top:6px">Menampilkan 500 dari ${nf(R2.length)} baris; export CSV berisi semuanya.</div>`:"");
+ $("mdl").classList.add("open")}
+const csvc=v=>{v=String(v??"");if(/^[=+\-@]/.test(v))v="'"+v;return'"'+v.replace(/"/g,'""')+'"'};
+async function rcExport(){if(!RC)return;const txt="\ufeff"+[RH,...rcRows()].map(r=>r.map(csvc).join(",")).join("\r\n"),name="selisih-delivered-vs-paid-cod-"+iso(new Date())+".csv",b=$("mex");
+ let d=null;try{const c=window.claude;d=c&&c.use?await c.use("downloads"):null}catch(e){}
+ if(d){try{await d.save({filename:name,data:txt});return}catch(e){if(e&&e.code=="declined")return;if(!e||(e.code!="unavailable"&&e.code!="not_granted")){b.textContent="Gagal export";setTimeout(()=>b.textContent="⬇ Export CSV",2500);return}}}
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:"text/csv;charset=utf-8"}));a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1e4)}
+$("ook").addEventListener("click",e=>{if(e.target.closest("#ral"))openRC()});$("ook").addEventListener("keydown",e=>{if(e.key=="Enter"&&e.target.closest("#ral"))openRC()});
+$("mcl").onclick=()=>$("mdl").classList.remove("open");$("mex").onclick=rcExport;$("mdl").onclick=e=>{if(e.target==$("mdl"))$("mdl").classList.remove("open")};document.addEventListener("keydown",e=>{if(e.key=="Escape")$("mdl").classList.remove("open")});
 rebuildOA();
 load();
 </script></body></html>
