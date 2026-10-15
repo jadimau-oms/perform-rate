@@ -1,0 +1,4 @@
+# Data order berisi informasi pelanggan: jangan di-commit ke repo publik
+data/*.csv
+*.csv
+.DS_Store
