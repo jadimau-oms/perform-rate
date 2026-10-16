@@ -64,7 +64,7 @@ th:first-child,td:first-child{text-align:left;max-width:260px;overflow:hidden;te
 </div>
 <div id="v2" hidden>
 <div class="card bar"><label>Metrik<select id="om"></select></label><label>Toko<select id="otk"></select></label><label>Level<span class="seg" id="olv"><button data-l="L" class="on">Pengiklan utama</button><button data-l="A">Sub-pengiklan</button></span></label><label>Min. order / sel<input id="omin" type="number" value="30" min="0" style="width:80px"></label></div>
-<div class="card"><h2>Ringkasan per CS</h2><div class="mu">Konversi = Delivered ÷ seluruh order COD (termasuk yang cancel sebelum kirim). Valid/Cancel dihitung dari semua order orderonline; Success/RTS dari tracking COD. Angka di samping persen = jumlah order.</div><div class="sc" id="csT"></div></div>
+<div class="card"><h2>Ringkasan per CS</h2><div class="mu">Konversi = Delivered ÷ seluruh order COD (termasuk yang cancel sebelum kirim). Valid/Cancel dihitung dari semua order orderonline; Success/RTS dari tracking COD. Angka di samping persen = jumlah order. Closing Order = order berstatus Processing + Completed; klik chip COD / Transfer di kartu atas untuk memisahkan.</div><div class="sc" id="csT"></div></div>
 <div class="card"><h2>Matriks CS × Pengiklan <span class="mu" id="mxl"></span></h2><div class="mu">Hijau = lebih baik, merah = lebih buruk (relatif dalam matriks). Sel di bawah min. order dikosongkan; angka kecil = jumlah order.</div><div class="sc" id="mx"></div></div>
 <div class="card"><h2>Metrik per pengiklan (8 terbesar), dipisah per CS</h2><div class="cv"><canvas id="c4"></canvas></div></div>
 </div>
@@ -176,7 +176,7 @@ const MC=["JAN","FEB","MAR","APR","MEI","JUN","JUL","AGS","SEP","OKT","NOV","DES
 
 const OOS=new Map(),TOS=new Map();
 let OA=[],OT=[],OMS=[],curTab="v1",fg="ALL",fp="ALL";
-const OE=()=>({n:0,c:0,cod:0,d:0,r:0,pr:0,pd:0,up:0}),oadd=(o,x)=>{for(const k in o)o[k]+=x[k]};
+const OE=()=>({n:0,c:0,cl:0,cod:0,d:0,r:0,pr:0,pd:0,up:0}),oadd=(o,x)=>{for(const k in o)o[k]+=x[k]};
 const OM={cv:["Konversi (Delivered ÷ order COD)",o=>pc(o.d,o.cod)],vl:["Valid rate (tidak cancel)",o=>pc(o.n-o.c,o.n)],sr:["Success Rate (tracking)",o=>pc(o.d,o.d+o.r+o.pr)],rts:["RTS Rate (tracking)",o=>pc(o.r,o.d+o.r+o.pr)],cn:["Cancel rate",o=>pc(o.c,o.n)]};
 let om="cv",olv="L",otk="ALL",pk="cv",psd=-1,pg="N";
 const fxb=x=>(fg=="ALL"||x.g==fg)&&dok(x.dt||""),fx=x=>fxb(x)&&(fp=="ALL"||x.pm==fp);
@@ -227,8 +227,8 @@ function rebuildTR(){for(const k in store)delete store[k];const G={};
  TOS.forEach(r=>{if(r.s=="X")return;const k=[r.m,r.t,r.p,r.dt].join("\t"),g=G[k]??=[r.m,r.t,r.p,0,0,0,r.dt];g[r.s=="D"?3:r.s=="P"?4:5]++});
  Object.values(G).forEach(g=>{const[l,a]=who(g[1],g[2]);(store[g[0]]??=[]).push([g[0],g[1],g[2],g[3],g[4],g[5],l,a,grp(g[2]),g[6]])})}
 function rebuildOA(rf){const G={};
- OOS.forEach(o=>{const tr=TOS.get(o.id),t=tr&&tr.t?tr.t:tokoOf(o.p),pm=o.cod?"c":"t",k=[o.m,t,o.p,o.cs,o.dt,pm].join("\t"),g=G[k]??={m:o.m,t,p:o.p,cs:o.cs,dt:o.dt,pm,n:0,c:0,cod:0,d:0,r:0,pr:0,pd:0,up:0};
-  g.n++;if(o.st>=3)g.c++;if(o.pd)g.pd++;else if(o.st<2)g.up++;if(o.cod){g.cod++;const s=tr&&tr.s;if(s=="D")g.d++;else if(s=="R")g.r++;else if(s=="P")g.pr++}});
+ OOS.forEach(o=>{const tr=TOS.get(o.id),t=tr&&tr.t?tr.t:tokoOf(o.p),pm=o.cod?"c":"t",k=[o.m,t,o.p,o.cs,o.dt,pm].join("\t"),g=G[k]??={m:o.m,t,p:o.p,cs:o.cs,dt:o.dt,pm,n:0,c:0,cl:0,cod:0,d:0,r:0,pr:0,pd:0,up:0};
+  g.n++;if(o.st>=3)g.c++;if(o.st<2)g.cl++;if(o.pd)g.pd++;else if(o.st<2)g.up++;if(o.cod){g.cod++;const s=tr&&tr.s;if(s=="D")g.d++;else if(s=="R")g.r++;else if(s=="P")g.pr++}});
  OA=Object.values(G).map(g=>{const[l,a]=who(g.t,g.p);g.g=grp(g.p);g.l=l;g.a=a;g.nm=nmOf(g.p);return g});
  const cnt={},mo=new Set();OA.forEach(x=>{cnt[x.t]=(cnt[x.t]||0)+x.n;mo.add(x.m)});
  OT=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]);OMS=[...mo].sort((a,b)=>MC.indexOf(a)-MC.indexOf(b));
@@ -272,8 +272,8 @@ function tab(v){curTab=v;okpi();["v1","v2","v3"].forEach(i=>$(i).hidden=i!=v);$(
 function v2(){const m=OM[om],key=x=>olv=="L"?x.l:x.a,mn=+$("omin").value||0,tf=x=>(otk=="ALL"||x.t==otk)&&fx(x),A={},S={},T={};
  OA.forEach(x=>{if(!tf(x))return;oadd(A[key(x)+"\t"+x.cs]??=OE(),x);oadd(S[x.cs]??=OE(),x);oadd(T[key(x)]??=OE(),x)});
  const C=Object.keys(S).sort(),Ad=Object.keys(T).filter(a=>T[a].n>=mn).sort((a,b)=>T[b].n-T[a].n);
- let h=`<table><thead><tr><th>CS</th><th>Order</th><th>Valid</th><th>Cancel</th><th>COD</th><th>Bank Transfer</th><th>Konversi</th><th>Success</th><th>RTS</th></tr></thead><tbody>`;
- C.forEach(c=>{const o=S[c];h+=`<tr style="cursor:default"><td>${c}</td><td>${nf(o.n)}</td><td>${f(OM.vl[1](o))} <span class="mu">· ${nf(o.n-o.c)}</span></td><td>${f(OM.cn[1](o))} <span class="mu">· ${nf(o.c)}</span></td><td>${f(pc(o.cod,o.n))} <span class="mu">· ${nf(o.cod)}</span></td><td>${f(pc(o.n-o.cod,o.n))} <span class="mu">· ${nf(o.n-o.cod)}</span></td><td>${f(OM.cv[1](o))}</td><td>${f(OM.sr[1](o))}</td><td class="${OM.rts[1](o)>=30?"hi":""}">${f(OM.rts[1](o))}</td></tr>`});
+ let h=`<table><thead><tr><th>CS</th><th>Order</th><th>Valid</th><th>Cancel</th><th>Closing Order</th><th>Konversi</th><th>Success</th><th>RTS</th></tr></thead><tbody>`;
+ C.forEach(c=>{const o=S[c];h+=`<tr style="cursor:default"><td>${c}</td><td>${nf(o.n)}</td><td>${f(OM.vl[1](o))} <span class="mu">· ${nf(o.n-o.c)}</span></td><td>${f(OM.cn[1](o))} <span class="mu">· ${nf(o.c)}</span></td><td>${f(pc(o.cl,o.n))} <span class="mu">· ${nf(o.cl)}</span></td><td>${f(OM.cv[1](o))}</td><td>${f(OM.sr[1](o))}</td><td class="${OM.rts[1](o)>=30?"hi":""}">${f(OM.rts[1](o))}</td></tr>`});
  $("csT").innerHTML=h+"</tbody></table>";
  const val=o=>o&&o.n>=mn?m[1](o):null,vs=[];Ad.forEach(a=>C.forEach(c=>{const v=val(A[a+"\t"+c]);if(v!=null)vs.push(v)}));
  const lo=Math.min(...vs),hi=Math.max(...vs),bad=om=="rts"||om=="cn",col=v=>{if(v==null||hi==lo)return"";let t=(v-lo)/(hi-lo);if(bad)t=1-t;return`background:rgba(${t>.5?"22,163,74":"220,38,38"},${(Math.abs(t-.5)*.7).toFixed(2)})`};
