@@ -63,9 +63,9 @@ th:first-child,td:first-child{text-align:left;max-width:260px;overflow:hidden;te
 <div class="cv" style="height:240px;margin:8px 0"><canvas id="c3"></canvas></div><div class="sc" id="pt"></div></div>
 </div>
 <div id="v2" hidden>
-<div class="card bar"><label>Metrik<select id="om"></select></label><label>Toko<select id="otk"></select></label><label>Level<span class="seg" id="olv"><button data-l="L" class="on">Pengiklan utama</button><button data-l="A">Sub-pengiklan</button></span></label><label>Min. order / sel<input id="omin" type="number" value="30" min="0" style="width:80px"></label></div>
+<div class="card bar"><label>Metrik<select id="om"></select></label><label>Toko<select id="otk"></select></label><label>Level<span class="seg" id="olv"><button data-l="L" class="on">Pengiklan utama</button><button data-l="A">Sub-pengiklan</button></span></label><label>Min. closing order / sel<input id="omin" type="number" value="30" min="0" style="width:80px"></label></div>
 <div class="card"><h2>Ringkasan per CS</h2><div class="mu">Konversi = Delivered ÷ seluruh order COD (termasuk yang cancel sebelum kirim). Valid/Cancel dihitung dari semua order orderonline; Success/RTS dari tracking COD. Angka di samping persen = jumlah order. Closing Order = order berstatus Processing + Completed; klik chip COD / Transfer di kartu atas untuk memisahkan.</div><div class="sc" id="csT"></div></div>
-<div class="card"><h2>Matriks CS × Pengiklan <span class="mu" id="mxl"></span></h2><div class="mu">Hijau = lebih baik, merah = lebih buruk (relatif dalam matriks). Sel di bawah min. order dikosongkan; angka kecil = jumlah order.</div><div class="sc" id="mx"></div></div>
+<div class="card"><h2>Matriks CS × Pengiklan <span class="mu" id="mxl"></span></h2><div class="mu">Hijau = lebih baik, merah = lebih buruk (relatif dalam matriks). Sel di bawah min. closing order dikosongkan; angka kecil = jumlah closing order (Processing + Completed).</div><div class="sc" id="mx"></div></div>
 <div class="card"><h2>Metrik per pengiklan (8 terbesar), dipisah per CS</h2><div class="cv"><canvas id="c4"></canvas></div></div>
 </div>
 <div id="v3" hidden>
@@ -271,13 +271,13 @@ $("ook").onclick=e=>{const x=e.target.closest(".chip");if(!x)return;fp=fp==x.dat
 function tab(v){curTab=v;okpi();["v1","v2","v3"].forEach(i=>$(i).hidden=i!=v);$("srcn").hidden=v=="v1";document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.v==v));if(v=="v1")render();else{srcLine();v=="v2"?v2():v3()}}
 function v2(){const m=OM[om],key=x=>olv=="L"?x.l:x.a,mn=+$("omin").value||0,tf=x=>(otk=="ALL"||x.t==otk)&&fx(x),A={},S={},T={};
  OA.forEach(x=>{if(!tf(x))return;oadd(A[key(x)+"\t"+x.cs]??=OE(),x);oadd(S[x.cs]??=OE(),x);oadd(T[key(x)]??=OE(),x)});
- const C=Object.keys(S).sort(),Ad=Object.keys(T).filter(a=>T[a].n>=mn).sort((a,b)=>T[b].n-T[a].n);
+ const C=Object.keys(S).sort(),Ad=Object.keys(T).filter(a=>T[a].cl>=mn).sort((a,b)=>T[b].cl-T[a].cl);
  let h=`<table><thead><tr><th>CS</th><th>Order</th><th>Valid</th><th>Cancel</th><th>Closing Order</th><th>Konversi</th><th>Success</th><th>RTS</th></tr></thead><tbody>`;
  C.forEach(c=>{const o=S[c];h+=`<tr style="cursor:default"><td>${c}</td><td>${nf(o.n)}</td><td>${f(OM.vl[1](o))} <span class="mu">· ${nf(o.n-o.c)}</span></td><td>${f(OM.cn[1](o))} <span class="mu">· ${nf(o.c)}</span></td><td>${f(pc(o.cl,o.n))} <span class="mu">· ${nf(o.cl)}</span></td><td>${f(OM.cv[1](o))}</td><td>${f(OM.sr[1](o))}</td><td class="${OM.rts[1](o)>=30?"hi":""}">${f(OM.rts[1](o))}</td></tr>`});
  $("csT").innerHTML=h+"</tbody></table>";
- const val=o=>o&&o.n>=mn?m[1](o):null,vs=[];Ad.forEach(a=>C.forEach(c=>{const v=val(A[a+"\t"+c]);if(v!=null)vs.push(v)}));
+ const val=o=>o&&o.cl>=mn?m[1](o):null,vs=[];Ad.forEach(a=>C.forEach(c=>{const v=val(A[a+"\t"+c]);if(v!=null)vs.push(v)}));
  const lo=Math.min(...vs),hi=Math.max(...vs),bad=om=="rts"||om=="cn",col=v=>{if(v==null||hi==lo)return"";let t=(v-lo)/(hi-lo);if(bad)t=1-t;return`background:rgba(${t>.5?"22,163,74":"220,38,38"},${(Math.abs(t-.5)*.7).toFixed(2)})`};
- const cell=(o,hl)=>{const v=val(o);return`<td style="${hl?col(v):""}">${v==null?"–":f(v)+' <span class="mu">· '+o.n+"</span>"}</td>`};
+ const cell=(o,hl)=>{const v=val(o);return`<td style="${hl?col(v):""}">${v==null?"–":f(v)+' <span class="mu">· '+nf(o.cl)+"</span>"}</td>`};
  $("mxl").textContent="— "+m[0];
  h=`<table><thead><tr><th>Pengiklan</th>${C.map(c=>`<th>${c}</th>`).join("")}<th>Semua CS</th></tr></thead><tbody>`;
  Ad.forEach(a=>{h+=`<tr style="cursor:default"><td>${a}</td>${C.map(c=>cell(A[a+"\t"+c],1)).join("")}${cell(T[a],0)}</tr>`});
