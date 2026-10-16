@@ -33,6 +33,7 @@ th:first-child,td:first-child{text-align:left;max-width:260px;overflow:hidden;te
 .al{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px;padding:8px 12px;border:1px solid var(--rt);border-radius:8px;background:rgba(220,38,38,.1);cursor:pointer}.al:hover{background:rgba(220,38,38,.18)}.al b{color:var(--rt)}
 .mdl{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:max(12px,env(safe-area-inset-top,0px)) 12px 12px}.mdl.open{display:flex}.mb{background:var(--card);border:1px solid var(--bd);border-radius:12px;width:min(1100px,100%);max-height:100%;display:flex;flex-direction:column}.mh{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--bd);flex-wrap:wrap}.mh h2{margin:0}.mc{padding:12px 14px;overflow:auto}
 .bt{padding:6px 14px;border-radius:6px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);cursor:pointer;font:inherit}.bt.pri{background:var(--ac);color:#fff;border-color:var(--ac)}.tl td,.tl th{text-align:left}
+.tg{background:none;border:0;color:var(--tx);cursor:pointer;width:22px;padding:0;margin-right:4px;font-size:12px}.tg:hover{color:var(--ac)}.tg0{display:inline-block;width:26px}.ch{background:rgba(127,127,127,.07)}.ch td:first-child{padding-left:38px}
 </style></head><body>
 <h1>Success Rate & RTS Rate <span id="per" class="mu"></span></h1>
 <div class="mu">Hanya Delivered + Processing + RTS yang dihitung. Cancel & Resi Menyusul dikeluarkan. Success = Delivered ÷ Total, RTS = RTS ÷ Total.</div>
@@ -63,9 +64,9 @@ th:first-child,td:first-child{text-align:left;max-width:260px;overflow:hidden;te
 <div class="cv" style="height:240px;margin:8px 0"><canvas id="c3"></canvas></div><div class="sc" id="pt"></div></div>
 </div>
 <div id="v2" hidden>
-<div class="card bar"><label>Metrik<select id="om"></select></label><label>Toko<select id="otk"></select></label><label>Level<span class="seg" id="olv"><button data-l="L" class="on">Pengiklan utama</button><button data-l="A">Sub-pengiklan</button></span></label><label>Min. closing order / sel<input id="omin" type="number" value="30" min="0" style="width:80px"></label></div>
+<div class="card bar"><label>Metrik<select id="om"></select></label><label>Toko<select id="otk"></select></label><label>Min. closing order / sel<input id="omin" type="number" value="30" min="0" style="width:80px"></label></div>
 <div class="card"><h2>Ringkasan per CS</h2><div class="mu">Konversi = Delivered ÷ seluruh order COD (termasuk yang cancel sebelum kirim). Valid/Cancel dihitung dari semua order orderonline; Success/RTS dari tracking COD. Angka di samping persen = jumlah order. Closing Order = order berstatus Processing + Completed; klik chip COD / Transfer di kartu atas untuk memisahkan. Filter Transfer: Konversi = Paid (Processing + Completed) ÷ total order; Success = Completed Paid ÷ Paid.</div><div class="sc" id="csT"></div></div>
-<div class="card"><h2>Matriks CS × Pengiklan <span class="mu" id="mxl"></span></h2><div class="mu">Hijau = lebih baik, merah = lebih buruk (relatif dalam matriks). Sel di bawah min. closing order dikosongkan; angka kecil = jumlah closing order (Processing + Completed). Konversi di sini dihitung dari orderonline saja: Closing Order ÷ total order.</div><div class="sc" id="mx"></div></div>
+<div class="card"><h2>Matriks CS × Pengiklan <span class="mu" id="mxl"></span></h2><div class="mu">Hijau = lebih baik, merah = lebih buruk (relatif dalam matriks). Sel di bawah min. closing order dikosongkan; angka kecil = jumlah closing order (Processing + Completed). Konversi di sini dihitung dari orderonline saja: Closing Order ÷ total order. Klik panah ▸ di kolom Pengiklan untuk membuka sub-pengiklan (▸ di judul kolom = buka / tutup semua).</div><div class="sc" id="mx"></div></div>
 <div class="card"><h2>Metrik per pengiklan (8 terbesar), dipisah per CS</h2><div class="cv"><canvas id="c4"></canvas></div></div>
 </div>
 <div id="v3" hidden>
@@ -179,7 +180,7 @@ let OA=[],OT=[],OMS=[],curTab="v1",fg="ALL",fp="ALL";
 const OE=()=>({n:0,c:0,cl:0,pcl:0,cp:0,cod:0,d:0,r:0,pr:0,pd:0,up:0}),oadd=(o,x)=>{for(const k in o)o[k]+=x[k]};
 const OM={cv:["Konversi (Delivered ÷ order COD)",o=>pc(o.d,o.cod)],vl:["Valid rate (tidak cancel)",o=>pc(o.n-o.c,o.n)],sr:["Success Rate (tracking)",o=>pc(o.d,o.d+o.r+o.pr)],rts:["RTS Rate (tracking)",o=>pc(o.r,o.d+o.r+o.pr)],cn:["Cancel rate",o=>pc(o.c,o.n)]},
 OMX={...OM,cv:["Konversi (Closing Order ÷ total order, orderonline)",o=>pc(fp=="t"?o.pcl:o.cl,o.n)],sr:["Success Rate (COD: tracking · Transfer: Completed Paid ÷ Paid)",o=>fp=="t"?pc(o.cp,o.pcl):OM.sr[1](o)]};
-let om="cv",olv="L",otk="ALL",pk="cv",psd=-1,pg="N";
+let om="cv",ox=new Set(),otk="ALL",pk="cv",psd=-1,pg="N";
 const fxb=x=>(fg=="ALL"||x.g==fg)&&dok(x.dt||""),fx=x=>fxb(x)&&(fp=="ALL"||x.pm==fp);
 const MR=/(^|[^A-Z0-9])(MBY|IPD|IDR|IDX|RZZ|IHY|MBI)(?![A-Z0-9])/;
 const grp=p=>{const u=p.toUpperCase(),c=u.includes("|")?u.slice(u.lastIndexOf("|")+1):u,t=s=>s.includes("NFZ")?"NFZ":MR.test(s)?"MADAM":null;return t(c)||t(u)||"LAINNYA"};
@@ -270,20 +271,23 @@ function okpi(){const T=OE(),S={c:OE(),t:OE()};OA.forEach(x=>{if(!fxb(x))return;
  $("ook").innerHTML=`<h2>Orderonline · ${fg=="ALL"?"semua grup":"Group "+fg} · ${drl()||"semua periode"}${fp=="ALL"?"":" · "+(fp=="c"?"COD":"Transfer")}</h2><div class="kpis">`+k("Total Orders",cn(T.n),o=>cn(o.n))+k("Total Paid",cn(T.pd),o=>cn(o.pd))+k("Paid Ratio",pr(T),pr)+k("Unpaid Orders",cn(T.up),o=>cn(o.up),"Processing &amp; Completed yang belum dibayar")+"</div>"+alertHtml()}
 $("ook").onclick=e=>{const x=e.target.closest(".chip");if(!x)return;fp=fp==x.dataset.p?"ALL":x.dataset.p;tab(curTab)};
 function tab(v){curTab=v;okpi();["v1","v2","v3"].forEach(i=>$(i).hidden=i!=v);$("srcn").hidden=v=="v1";document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.v==v));if(v=="v1")render();else{srcLine();v=="v2"?v2():v3()}}
-function v2(){const m=OMX[om],key=x=>olv=="L"?x.l:x.a,mn=+$("omin").value||0,tf=x=>(otk=="ALL"||x.t==otk)&&fx(x),A={},S={},T={};
- OA.forEach(x=>{if(!tf(x))return;oadd(A[key(x)+"\t"+x.cs]??=OE(),x);oadd(S[x.cs]??=OE(),x);oadd(T[key(x)]??=OE(),x)});
+function v2(nc){const m=OMX[om],key=x=>x.l,mn=+$("omin").value||0,tf=x=>(otk=="ALL"||x.t==otk)&&fx(x),A={},S={},T={},B={},U={},K={};
+ OA.forEach(x=>{if(!tf(x))return;oadd(A[key(x)+"\t"+x.cs]??=OE(),x);oadd(S[x.cs]??=OE(),x);oadd(T[key(x)]??=OE(),x);const u=x.l+"\t"+x.a;oadd(B[u+"\t"+x.cs]??=OE(),x);oadd(U[u]??=OE(),x);(K[x.l]??=new Set).add(x.a)});
  const C=Object.keys(S).sort(),Ad=Object.keys(T).filter(a=>T[a].cl>=mn).sort((a,b)=>T[b].cl-T[a].cl);
  let h=`<table><thead><tr><th>CS</th><th>Order</th><th>Valid</th><th>Cancel</th><th>Closing Order</th><th>Konversi</th><th>Success</th><th>RTS</th></tr></thead><tbody>`;
  C.forEach(c=>{const o=S[c];h+=`<tr style="cursor:default"><td>${c}</td><td>${nf(o.n)}</td><td>${f(OM.vl[1](o))} <span class="mu">· ${nf(o.n-o.c)}</span></td><td>${f(OM.cn[1](o))} <span class="mu">· ${nf(o.c)}</span></td><td>${f(pc(o.cl,o.n))} <span class="mu">· ${nf(o.cl)}</span></td><td>${f(fp=="t"?pc(o.pcl,o.n):OM.cv[1](o))}</td><td>${f(fp=="t"?pc(o.cp,o.pcl):OM.sr[1](o))}</td><td class="${OM.rts[1](o)>=30?"hi":""}">${f(OM.rts[1](o))}</td></tr>`});
  $("csT").innerHTML=h+"</tbody></table>";
  const val=o=>o&&o.cl>=mn?m[1](o):null,vs=[];Ad.forEach(a=>C.forEach(c=>{const v=val(A[a+"\t"+c]);if(v!=null)vs.push(v)}));
- const lo=Math.min(...vs),hi=Math.max(...vs),bad=om=="rts"||om=="cn",col=v=>{if(v==null||hi==lo)return"";let t=(v-lo)/(hi-lo);if(bad)t=1-t;return`background:rgba(${t>.5?"22,163,74":"220,38,38"},${(Math.abs(t-.5)*.7).toFixed(2)})`};
+ const lo=Math.min(...vs),hi=Math.max(...vs),bad=om=="rts"||om=="cn",col=v=>{if(v==null||hi==lo)return"";let t=Math.max(0,Math.min(1,(v-lo)/(hi-lo)));if(bad)t=1-t;return`background:rgba(${t>.5?"22,163,74":"220,38,38"},${(Math.abs(t-.5)*.7).toFixed(2)})`};
  const cell=(o,hl)=>{const v=val(o);return`<td style="${hl?col(v):""}">${v==null?"–":f(v)+' <span class="mu">· '+nf(o.cl)+"</span>"}</td>`};
  $("mxl").textContent="— "+m[0];
  h=`<table><thead><tr><th>Pengiklan</th>${C.map(c=>`<th>${c}</th>`).join("")}<th>Semua CS</th></tr></thead><tbody>`;
- Ad.forEach(a=>{h+=`<tr style="cursor:default"><td>${a}</td>${C.map(c=>cell(A[a+"\t"+c],1)).join("")}${cell(T[a],0)}</tr>`});
+ const ex=a=>[...K[a]].some(s=>s!==a),allO=Ad.some(ex)&&Ad.filter(ex).every(a=>ox.has(a)),tg=a=>ex(a)?`<button class="tg" data-a="${esc(a)}" title="Buka / tutup sub-pengiklan">${ox.has(a)?"▾":"▸"}</button>`:`<span class="tg0"></span>`;
+ h=h.replace("<th>Pengiklan</th>",`<th><button class="tg" data-a="*" title="Buka / tutup semua">${allO?"▾":"▸"}</button>Pengiklan</th>`);
+ Ad.forEach(a=>{h+=`<tr style="cursor:default"><td>${tg(a)}${esc(a)}</td>${C.map(c=>cell(A[a+"\t"+c],1)).join("")}${cell(T[a],0)}</tr>`;
+  if(ox.has(a)&&ex(a))[...K[a]].filter(s=>U[a+"\t"+s].cl>=mn).sort((p,q)=>U[a+"\t"+q].cl-U[a+"\t"+p].cl).forEach(s=>{h+=`<tr class="ch" style="cursor:default"><td>${esc(s===a?a+" (utama)":s)}</td>${C.map(c=>cell(B[a+"\t"+s+"\t"+c],1)).join("")}${cell(U[a+"\t"+s],0)}</tr>`})});
  $("mx").innerHTML=h+"</tbody></table>";
- const top=Ad.slice(0,8);
+ if(nc===1)return;const top=Ad.slice(0,8);
  mk("c4",{type:"bar",data:{labels:top,datasets:C.map((c,i)=>({label:c,backgroundColor:COL[i%COL.length],data:top.map(a=>val(A[a+"\t"+c]))}))}})}
 function v3(){const q=$("pq").value.toLowerCase(),mn=+$("pmin").value||0,pt=$("ptk").value,P={};
  OA.forEach(x=>{if((pt!="ALL"&&x.t!=pt)||!fx(x)||!x.nm.toLowerCase().includes(q))return;const k=pg=="N"?x.nm:x.nm+" · "+x.a,e=P[k]??={o:OE(),a:new Set(),k};oadd(e.o,x);e.a.add(x.a)});
@@ -300,7 +304,6 @@ function v3(){const q=$("pq").value.toLowerCase(),mn=+$("pmin").value||0,pt=$("p
  mk("c5",{type:"bar",data:{labels:tp.map(x=>x.k.slice(0,22)),datasets:[{label:"Konversi",backgroundColor:"#16a34a",data:tp.map(x=>x.cv)},{label:"RTS Rate",backgroundColor:"#dc2626",data:tp.map(x=>x.rts)}]}})}
 document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>tab(b.dataset.v));
 $("om").innerHTML=Object.keys(OMX).map(k=>`<option value="${k}">${OMX[k][0]}</option>`).join("");$("om").onchange=e=>{om=e.target.value;v2()};$("otk").onchange=e=>{otk=e.target.value;v2()};$("omin").oninput=v2;
-document.querySelectorAll("#olv button").forEach(b=>b.onclick=()=>{olv=b.dataset.l;document.querySelectorAll("#olv button").forEach(x=>x.classList.toggle("on",x==b));v2()});
 document.querySelectorAll("#pgs button").forEach(b=>b.onclick=()=>{pg=b.dataset.g;document.querySelectorAll("#pgs button").forEach(x=>x.classList.toggle("on",x==b));v3()});
 ["ptk","pq","pmin"].forEach(i=>$(i).oninput=v3);
 
@@ -329,6 +332,7 @@ async function rcExport(){if(!RC)return;const txt="\ufeff"+[RH,...rcRows()].map(
  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:"text/csv;charset=utf-8"}));a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1e4)}
 $("ook").addEventListener("click",e=>{if(e.target.closest("#ral"))openRC()});$("ook").addEventListener("keydown",e=>{if(e.key=="Enter"&&e.target.closest("#ral"))openRC()});
 $("mcl").onclick=()=>$("mdl").classList.remove("open");$("mex").onclick=rcExport;$("mdl").onclick=e=>{if(e.target==$("mdl"))$("mdl").classList.remove("open")};document.addEventListener("keydown",e=>{if(e.key=="Escape")$("mdl").classList.remove("open")});
+$("mx").addEventListener("click",e=>{const b=e.target.closest(".tg");if(!b)return;const a=b.dataset.a;if(a=="*"){const L=[...document.querySelectorAll("#mx tbody .tg")].map(x=>x.dataset.a),all=L.every(x=>ox.has(x));L.forEach(x=>all?ox.delete(x):ox.add(x))}else ox.has(a)?ox.delete(a):ox.add(a);v2(1)});
 rebuildOA();
 load();
 </script></body></html>
