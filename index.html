@@ -141,7 +141,7 @@ document.querySelectorAll("#lvseg button").forEach(b=>b.onclick=()=>{lvl=b.datas
 $("rmin").oninput=pies;
 
 /* ===== Konfigurasi data: tambahkan nama file CSV bulan baru di sini ===== */
-const FILES=["data/TRACKING_ORDER_MADAM__26_-_JUN.csv","data/TRACKING_ORDER_MADAM__26_-_JUL.csv","data/TRACKING_ORDER_MADAM__26_-_AGS.csv","data/TRACKING_ORDER_MADAM__26_-_SEP.csv"];
+const FILES=["data/TRACKING_PAID_MADAM__26_-_JUN.csv","data/TRACKING_PAID_MADAM__26_-_JUL.csv","data/TRACKING_PAID_MADAM__26_-_AGS.csv","data/TRACKING_PAID_MADAM__26_-_SEP.csv"];
 /* ===== Pemetaan pengiklan ===== */
 const LEAD={H:"Hasbi",S:"Sandy",K:"Kharis","1":"Pak Wok",Y:"Yusuf",F:"Faiqun",R:"Riski",O:"Rofiq",C:"Ichsan",I:"Hakim",L:"Yuslich",U:"Ulil",J:"Jalal"};
 const SUB={BS:"Albar",AS:"Aska",GS:"Galih",RS:"Alfin",MS:"Radi",IK:"Ichwan",BK:"Bagas",AK:"Alfin Sehat",DY:"Duril",AY:"Azzam"};
@@ -167,7 +167,7 @@ async function load(){$("st").textContent="Memuat data…";let ok=false;
  rebuildTR();rebuildOA();finish(ok?"":"Penyimpanan tidak tersedia — data hanya bertahan selama sesi ini")}
 $("up").onchange=async e=>{const msg=[];for(const fl of e.target.files){const tx=await fl.text(),hd=tx.slice(0,tx.indexOf("\n")).toLowerCase();
  if(hd.includes("order_id")&&hd.includes("handled_by"))msg.push("orderonline "+ingestOO(tx)+" order");
- else if(hd.includes("toko")&&hd.includes("product")&&hd.includes("remark"))msg.push("tracking "+ingestTR(tx,code(fl.name))+" order");
+ else if(hd.includes("granular status")||(hd.includes("toko")&&hd.includes("product")&&hd.includes("remark")))msg.push("tracking "+ingestTR(tx,code(fl.name))+" order");
  else msg.push("dilewati "+fl.name+" (format tidak dikenali)")}
  rebuildTR();finish(msg.join(", "));rebuildOA(true);const sv=await flush();$("st").textContent=msg.join(", ")+" · "+sv;e.target.value=""};
 /* ===== Integrasi orderonline x tracking (Sep) ===== */
@@ -190,9 +190,9 @@ let DB=null;const OOD={},TRD={},dirty={oo:new Set(),tr:new Set()},OST=["complete
 function putOO(r,q){const o=OOS.get(r.id);if(o&&o.dt!=r.dt){OOD[o.dt]?.delete(r.id);if(!q)dirty.oo.add(o.dt)}OOS.set(r.id,r);(OOD[r.dt]??=new Map).set(r.id,r);if(!q)dirty.oo.add(r.dt)}
 function putTR(r,q){const o=TOS.get(r.id);if(o&&dk(o)!=dk(r)){TRD[dk(o)]?.delete(r.id);if(!q)dirty.tr.add(dk(o))}TOS.set(r.id,r);(TRD[dk(r)]??=new Map).set(r.id,r);if(!q)dirty.tr.add(dk(r))}
 const encOO=m=>{const P=[],pi={};return{P,o:[...m.values()].map(r=>[r.id,pi[r.p]??=P.push(r.p)-1,r.cs,r.st,r.pd?1:0,r.cod?1:0])}};
-const encTR=m=>{const P=[],T=[],pi={},ti={};return{P,T,o:[...m.values()].map(r=>r.s=="X"?[r.id,-1,-1,"X",r.m]:[r.id,ti[r.t]??=T.push(r.t)-1,pi[r.p]??=P.push(r.p)-1,r.s,r.m,r.k||""])}};
+const encTR=m=>{const P=[],T=[],S=[],G=[],pi={},ti={},si={},gi={},ix=(a,i,v)=>v?(i[v]??=a.push(v)-1):-1;return{P,T,S,G,o:[...m.values()].map(r=>{const x=r.s=="X";return[r.id,x?-1:ix(T,ti,r.t),x?-1:ix(P,pi,r.p),r.s,r.m,r.k||"",ix(S,si,r.sl),ix(G,gi,r.gs)]})}};
 const decOO=(k,d)=>(d.o||[]).forEach(([id,i,cs,st,pd,cod])=>putOO({id,m:MC[+k.slice(5,7)-1],dt:k,p:d.P[i],cs,st,pd:!!pd,cod:!!cod},1));
-const decTR=(k,d)=>(d.o||[]).forEach(([id,ti,pi,s,m,rk])=>putTR({id,t:ti<0?"":d.T[ti],p:pi<0?"":d.P[pi],dt:k=="none"?"":k,s,m,k:rk||""},1));
+const decTR=(k,d)=>(d.o||[]).forEach(([id,ti,pi,s,m,rk,si,gi])=>putTR({id,t:ti<0?"":d.T[ti],p:pi<0?"":d.P[pi],dt:k=="none"?"":k,s,m,k:rk||"",sl:si>=0?d.S[si]:"",gs:gi>=0?d.G[gi]:""},1));
 /* Fallback untuk GitHub Pages: db artifact tidak ada, simpan di IndexedDB browser (antarmuka sama) */
 function idbShim(){const open=()=>new Promise((res,rej)=>{const q=indexedDB.open("perform-rate",1);q.onupgradeneeded=()=>q.result.createObjectStore("kv");q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)});
  return{collection:c=>({limit:()=>({get:async()=>{const d=await open();return new Promise((res,rej)=>{const out=[],rq=d.transaction("kv").objectStore("kv").openCursor();rq.onsuccess=()=>{const cur=rq.result;if(cur){if(cur.key.startsWith(c+"/")){const v=cur.value;out.push({id:cur.key.slice(c.length+1),data:()=>v})}cur.continue()}else res({docs:out})};rq.onerror=()=>rej(rq.error)})}})}),
@@ -205,10 +205,18 @@ async function flush(){if(!DB)return"⚠ tidak tersimpan (penyimpanan tidak ters
   for(let a=0;a<3;a++){try{await DB.doc(s+"/"+k).set(body);er=null;break}catch(x){er=x;await new Promise(r=>setTimeout(r,500*(a+1)))}}
   if(er){bad++;dirty[s].add(k)}else ok++;$("st").textContent=`Menyimpan ${ok+bad}/${jobs.length} dokumen…`}};
  await Promise.all([w(),w(),w(),w()]);return bad?`⚠ ${bad} dokumen gagal tersimpan (unggah ulang untuk mencoba lagi)`:`${ok} dokumen tersimpan`}
-function ingestTR(tx,c){const d=Papa.parse(tx,{skipEmptyLines:true}).data,h=d[0].map(x=>x.trim().toUpperCase()),iT=h.indexOf("TOKO"),iP=h.indexOf("PRODUCT"),iR=h.indexOf("REMARK"),iO=h.indexOf("ORDER ID"),iD=h.indexOf("TGL ORDER"),iK=h.findIndex(x=>/^(NO\.?\s*)?(RESI|AWB|TRACKING)(\s*(ID|NO\.?|NUMBER))?$/.test(x));let n=0;
- for(let k=1;k<d.length;k++){const x=d[k],id=(x[iO]||"").trim();if(!id)continue;let s=(x[iR]||"").trim().toUpperCase();if(s=="UNDELIVERED")s="PROCESSING";
-  const t=(x[iT]||"").trim(),p=(x[iP]||"").trim(),st=s=="DELIVERED"?"D":s=="PROCESSING"?"P":s=="RTS"?"R":"X",dt=pdt(x[iD]),m=MN[c]?c:(dt?MC[+dt.slice(5,7)-1]:"");if(!m)continue;
-  putTR(st=="X"||!t||!p?{id,t:"",p:"",dt,s:"X",m}:{id,t,p,dt,s:st,m,k:iK>=0?(x[iK]||"").trim():""});n++}
+const TRG=g=>g=="DELIVERED"?"D":g=="PROCESSING"||g=="UNDELIVERED"?"P":g=="RTS"?"R":"X";
+/* ITEM format baru menempelkan promo/varian di belakang kode pengiklan: potong sampai kode, sama seperti PRODUCT lama */
+const RXI=/^(.*?(?:^|[\s|\-])(?:[A-Za-z0-9][-\s])?[A-Za-z0-9][-\s]?NFZ)/i,RXJ=/^(.*?[A-Za-z0-9]-NFZ)/i;
+function normItem(s,t){s=(s||"").trim();if(/NFZ/i.test(s)){const m=s.match(RXI)||s.match(RXJ);return m?m[1].trim():s}const i=s.indexOf("|");return i>0&&t&&t!="NFZ"?s.slice(0,i).trim()+" | "+t:s}
+/* Tracking: format baru (TRACKING_PAID_*: ORDER ID, Tracking ID, DASHBOARD, ITEM, TANGGAL ORDER, GRANULAR STATUS, SETTLEMENT); format lama (TOKO/PRODUCT/REMARK) tetap terbaca */
+function ingestTR(tx,c){const d=Papa.parse(tx,{skipEmptyLines:true}).data,h=d[0].map(x=>x.trim().toUpperCase().replace(/^\ufeff/,"")),ix=(...a)=>{for(const k of a){const i=h.indexOf(k);if(i>=0)return i}return-1},
+ nw=h.includes("GRANULAR STATUS"),iT=ix("DASHBOARD","TOKO"),iP=ix("ITEM","PRODUCT"),iR=ix("GRANULAR STATUS","REMARK"),iO=ix("ORDER ID"),iD=ix("TANGGAL ORDER","TGL ORDER"),iS=ix("SETTLEMENT"),
+ iK=h.findIndex(x=>/^(NO\.?\s*)?(RESI|AWB|TRACKING)(\s*(ID|NO\.?|NUMBER))?$/.test(x));let n=0;
+ for(let k=1;k<d.length;k++){const x=d[k],id=(x[iO]||"").trim();if(!id)continue;const gs=(x[iR]||"").trim().toUpperCase(),st=TRG(gs),
+  t=(x[iT]||"").trim().toUpperCase(),p=nw?normItem(x[iP],t):(x[iP]||"").trim(),dt=pdt(x[iD]),m=MN[c]?c:(dt?MC[+dt.slice(5,7)-1]:"");if(!m)continue;
+  const kk=iK>=0?(x[iK]||"").trim():"",sl=iS>=0?(x[iS]||"").trim():"";
+  putTR(st=="X"||!t||!p?{id,t:"",p:"",dt,s:"X",m,k:kk,sl,gs}:{id,t,p,dt,s:st,m,k:kk,sl,gs});n++}
  return n}
 function ingestOO(tx){const d=Papa.parse(tx,{skipEmptyLines:true}).data,h=d[0].map(x=>x.trim().toLowerCase().replace(/^\ufeff/,"")),ix=k=>h.indexOf(k),iI=ix("order_id"),iP=ix("product"),iS=ix("status"),iM=ix("payment_method"),iD=ix("created_at"),iC=ix("handled_by"),iY=ix("payment_status");let n=0;
  for(let k=1;k<d.length;k++){const x=d[k],id=(x[iI]||"").trim(),mm=parseInt((x[iD]||"").slice(3,5));if(!id||!(mm>=1&&mm<=12))continue;
@@ -304,12 +312,12 @@ function recon(){const D=new Map(),P=new Map(),L=[];
  D.forEach((t,id)=>{if(!P.has(id))L.push({id,t,o:OOS.get(id),w:"D"})});P.forEach((o,id)=>{if(!D.has(id))L.push({id,t:TOS.get(id),o,w:"P"})});
  return{nd:D.size,np:P.size,L}}
 function rcWhy(x){const{o,t}=x;if(x.w=="D"){if(!o)return"Delivered, order tidak ada di orderonline";if(!o.cod)return"Delivered, tapi order Transfer";if(!o.pd)return"Delivered, tapi COD belum paid";return"Delivered, beda tanggal/grup dengan orderonline"}
- if(!t)return"Paid COD, belum ada di tracking";if(t.s=="P")return"Paid COD, tracking masih Processing";if(t.s=="R")return"Paid COD, tracking RTS";if(t.s=="X")return"Paid COD, tracking cancel / resi menyusul";return"Paid COD, beda tanggal/grup dengan tracking"}
+ if(!t)return"Paid COD, belum ada di tracking";if(t.s=="P")return"Paid COD, tracking masih Processing";if(t.s=="R")return"Paid COD, tracking RTS";if(t.s=="X")return"Paid COD, tracking "+(t.gs?t.gs.toLowerCase():"cancel / resi menyusul");return"Paid COD, beda tanggal/grup dengan tracking"}
 function alertHtml(){if(!OOS.size||!TOS.size){RC=null;return""}RC=recon();if(!RC.L.length)return"";const d=Math.abs(RC.nd-RC.np);
  return`<div class="al" id="ral" role="button" tabindex="0"><span>⚠</span><span><b>Delivered (tracking) ${nf(RC.nd)} ≠ Paid COD (orderonline) ${nf(RC.np)}</b>${d?" · selisih "+nf(d):""} · ${nf(RC.L.length)} order tidak cocok</span><span class="mu">Klik untuk lihat detail</span></div>`}
-const RH=["Order ID","Tracking ID","Toko","Produk","CS","Tgl order","Status orderonline","Status tracking","Keterangan"];
-function rcRows(){return RC.L.map(x=>{const{o,t}=x;return[x.id,t&&t.k||"",t&&t.t||(o?tokoOf(o.p):""),o?nmOf(o.p):(t&&t.p?nmOf(t.p):""),o?o.cs:"",(o?o.dt:t&&t.dt)||"",o?(o.cod?"COD":"Transfer")+" · "+(o.pd?"paid":"belum paid")+" · "+OST[o.st]:"–",t?TS[t.s]||t.s:"–",rcWhy(x)]}).sort((a,b)=>a[8]<b[8]?-1:a[8]>b[8]?1:a[0]<b[0]?-1:1)}
-function openRC(){if(!RC)return;const R2=rcRows(),by={};R2.forEach(r=>by[r[8]]=(by[r[8]]||0)+1);
+const RH=["Order ID","Tracking ID","Toko","Produk","CS","Tgl order","Status orderonline","Status tracking","Settlement","Keterangan"];
+function rcRows(){return RC.L.map(x=>{const{o,t}=x;return[x.id,t&&t.k||"",t&&t.t||(o?tokoOf(o.p):""),o?nmOf(o.p):(t&&t.p?nmOf(t.p):""),o?o.cs:"",(o?o.dt:t&&t.dt)||"",o?(o.cod?"COD":"Transfer")+" · "+(o.pd?"paid":"belum paid")+" · "+OST[o.st]:"–",t?(t.gs||TS[t.s]||t.s):"–",t&&t.sl||"–",rcWhy(x)]}).sort((a,b)=>a[9]<b[9]?-1:a[9]>b[9]?1:a[0]<b[0]?-1:1)}
+function openRC(){if(!RC)return;const R2=rcRows(),by={};R2.forEach(r=>by[r[9]]=(by[r[9]]||0)+1);
  $("mds").innerHTML=`Delivered (tracking) <b>${nf(RC.nd)}</b> · Paid COD (orderonline) <b>${nf(RC.np)}</b> · ${esc(drl()||"semua periode")}${fg=="ALL"?"":" · "+esc(fg)}<br>`+Object.entries(by).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${esc(k)}: <b>${nf(v)}</b>`).join(" · ");
  $("mdb").innerHTML=`<table class="tl"><thead><tr>${RH.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${R2.slice(0,500).map(r=>`<tr style="cursor:default">${r.map(c=>`<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table>`+(R2.length>500?`<div class="mu" style="margin-top:6px">Menampilkan 500 dari ${nf(R2.length)} baris; export CSV berisi semuanya.</div>`:"");
  $("mdl").classList.add("open")}
