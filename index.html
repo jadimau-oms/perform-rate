@@ -70,9 +70,9 @@ th:first-child,td:first-child{text-align:left;max-width:260px;overflow:hidden;te
 <div class="card"><h2>Metrik per pengiklan (8 terbesar), dipisah per CS</h2><div class="cv"><canvas id="c4"></canvas></div></div>
 </div>
 <div id="v3" hidden>
-<div class="card bar"><label>Toko<select id="ptk"></select></label><label>Cari produk<input id="pq" placeholder="nama produk..."></label><label>Min. order COD<input id="pmin" type="number" value="30" min="0" style="width:80px"></label><label>Kelompok<span class="seg" id="pgs"><button data-g="N" class="on">Nama produk</button><button data-g="P">Produk + pengiklan</button></span></label></div>
+<div class="card bar"><label>Toko<select id="ptk"></select></label><label>Cari produk<input id="pq" placeholder="nama produk..."></label><label>Min. total order<input id="pmin" type="number" value="30" min="0" style="width:80px"></label><label>Kelompok<span class="seg" id="pgs"><button data-g="N" class="on">Nama produk</button><button data-g="P">Produk + pengiklan</button></span></label></div>
 <div class="card"><h2>10 produk konversi tertinggi <span class="mu">(hijau = Konversi, merah = RTS Rate)</span></h2><div class="cv"><canvas id="c5"></canvas></div></div>
-<div class="card"><h2>Semua produk <span class="mu" id="pinf"></span></h2><div class="mu">Klik judul kolom untuk mengurutkan. Hijau = konversi di atas rata-rata; merah = RTS ≥ 30%. Konversi = Delivered ÷ order COD (tanpa data trafik, ini ukuran order → terkirim).</div><div class="sc" id="pt3"></div></div>
+<div class="card"><h2>Semua produk <span class="mu" id="pinf"></span></h2><div class="mu">Klik judul kolom untuk mengurutkan. Hijau = konversi di atas rata-rata; merah = RTS ≥ 30%. Dari orderonline: Total Order = COD + Bank Transfer; Konversi = Closing Order (Processing + Completed) ÷ Total Order, angka kecil = jumlah closing order. Success / RTS tetap dari tracking COD.</div><div class="sc" id="pt3"></div></div>
 </div>
 <div class="mdl" id="mdl"><div class="mb"><div class="mh"><h2>Selisih Delivered vs Paid COD</h2><div style="display:flex;gap:8px"><button class="bt pri" id="mex">⬇ Export CSV</button><button class="bt" id="mcl">Tutup</button></div></div><div class="mc"><div class="mu" id="mds" style="margin-bottom:8px"></div><div id="mdb"></div></div></div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -291,13 +291,13 @@ function v2(nc){const m=OMX[om],key=x=>x.l,mn=+$("omin").value||0,tf=x=>(otk=="A
  mk("c4",{type:"bar",data:{labels:top,datasets:C.map((c,i)=>({label:c,backgroundColor:COL[i%COL.length],data:top.map(a=>val(A[a+"\t"+c]))}))}})}
 function v3(){const q=$("pq").value.toLowerCase(),mn=+$("pmin").value||0,pt=$("ptk").value,P={};
  OA.forEach(x=>{if((pt!="ALL"&&x.t!=pt)||!fx(x)||!x.nm.toLowerCase().includes(q))return;const k=pg=="N"?x.nm:x.nm+" · "+x.a,e=P[k]??={o:OE(),a:new Set(),k};oadd(e.o,x);e.a.add(x.a)});
- const L=Object.values(P).filter(e=>e.o.cod>=mn).map(e=>({k:e.k,a:[...e.a].join(", "),n:e.o.n,cod:e.o.cod,cv:OM.cv[1](e.o),vl:OM.vl[1](e.o),sr:OM.sr[1](e.o),rts:OM.rts[1](e.o),cn:OM.cn[1](e.o)}));
- const T=OE();OA.forEach(x=>{if((pt=="ALL"||x.t==pt)&&fx(x))oadd(T,x)});const avg=OM.cv[1](T);
+ const L=Object.values(P).filter(e=>e.o.n>=mn).map(e=>({k:e.k,a:[...e.a].join(", "),n:e.o.n,cod:e.o.cod,tf:e.o.n-e.o.cod,cl:e.o.cl,cv:OMX.cv[1](e.o),vl:OM.vl[1](e.o),sr:OMX.sr[1](e.o),rts:OM.rts[1](e.o),cn:OM.cn[1](e.o)}));
+ const T=OE();OA.forEach(x=>{if((pt=="ALL"||x.t==pt)&&fx(x))oadd(T,x)});const avg=OMX.cv[1](T);
  L.sort((a,b)=>{const A=a[pk]??-1,B=b[pk]??-1;return(A>B?1:A<B?-1:0)*psd});
  $("pinf").textContent=`(${L.length} produk · rata-rata konversi ${f(avg)})`;
  const th=(k,t)=>`<th data-k="${k}">${t}${pk==k?(psd>0?" ▲":" ▼"):""}</th>`;
- let h=`<table><thead><tr>${th("k","Produk")}${th("a","Pengiklan")}${th("n","Order")}${th("cod","COD")}${th("cv","Konversi")}${th("vl","Valid")}${th("cn","Cancel")}${th("sr","Success")}${th("rts","RTS")}</tr></thead><tbody>`;
- L.slice(0,300).forEach(x=>{h+=`<tr style="cursor:default"><td title="${x.k}">${x.k}</td><td style="text-align:left">${x.a}</td><td>${x.n}</td><td>${x.cod}</td><td class="${x.cv>=avg?"lo":""}">${f(x.cv)}</td><td>${f(x.vl)}</td><td>${f(x.cn)}</td><td>${f(x.sr)}</td><td class="${x.rts>=30?"hi":""}">${f(x.rts)}</td></tr>`});
+ let h=`<table><thead><tr>${th("k","Produk")}${th("a","Pengiklan")}${th("n","Total Order")}${th("cod","COD")}${th("tf","Bank Transfer")}${th("cv","Konversi")}${th("vl","Valid")}${th("cn","Cancel")}${th("sr","Success")}${th("rts","RTS")}</tr></thead><tbody>`;
+ L.slice(0,300).forEach(x=>{h+=`<tr style="cursor:default"><td title="${x.k}">${x.k}</td><td style="text-align:left">${x.a}</td><td>${nf(x.n)}</td><td>${nf(x.cod)}</td><td>${nf(x.tf)}</td><td class="${x.cv>=avg?"lo":""}">${f(x.cv)} <span class="mu">· ${nf(x.cl)}</span></td><td>${f(x.vl)}</td><td>${f(x.cn)}</td><td>${f(x.sr)}</td><td class="${x.rts>=30?"hi":""}">${f(x.rts)}</td></tr>`});
  $("pt3").innerHTML=h+"</tbody></table>";
  $("pt3").querySelectorAll("th").forEach(e=>e.onclick=()=>{const k=e.dataset.k;psd=pk==k?-psd:(k=="k"||k=="a"?1:-1);pk=k;v3()});
  const tp=[...L].filter(x=>x.cv!=null).sort((a,b)=>b.cv-a.cv).slice(0,10);
